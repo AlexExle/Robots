@@ -29,6 +29,12 @@ setBounds(2, shortPer, 0);
 setBounds(3, shortPer, 0);
 }
 
+function getSecPriceStep()
+{
+	var secInfo = getSecInfo();
+	return as_number(secInfo["minstep"]);
+}
+
 //рассчет размера входа. можно добавить плавающий коэффициент (при успешных сделаках он 1, при убыточных увеличивается)
 function calcQuantity(var price)
 {
@@ -106,21 +112,23 @@ function updateOrders()
 {
 //старые в утиль
 trade_action::cancelAllOrders();
-curShortOrder = setOrder(OP_SELL, line[1], calcQuantity(line[1]), COND_ASK, line[1]);
+var activationPrice = line[1] + (getSecPriceStep()* 2) ;
+curShortOrder = setOrder(OP_SELL, line[1], calcQuantity(line[1]), COND_ASK, activationPrice );
 if (not curShortOrder) {
       signal::output(getLastErrorMessage());
     }
 else
 {
-   signal::output("Обновили шорт.");
+   signal::output("Обновили шорт. Цена: " + line[1] + " Цена Активации: " + activationPrice);
 }
-curLongOrder = setOrder(OP_BUY, line[0], calcQuantity(line[0]), COND_BID, line[0]);
+activationPrice =  line[0] - (getSecPriceStep()* 2);
+curLongOrder = setOrder(OP_BUY, line[0], calcQuantity(line[0]), COND_BID, activationPrice);
 if (not curLongOrder) {
       signal::output(getLastErrorMessage());
     }
 else
 {
-signal::output("Обновили лонг.");
+signal::output("Обновили лонг. Цена: " + line[0] + " Цена Активации: " + activationPrice );
 }
 }
 
