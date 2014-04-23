@@ -10,6 +10,8 @@
 
 extern longPer = 50;
 extern shortPer = 22;
+//количество шагов цены на которое будет изменяться цена активации заявок на вход в позицию
+extern priceStepCount = 2;
 var count = 0;
 
 //id текущего стопа
@@ -112,7 +114,7 @@ function updateOrders()
 {
 //старые в утиль
 trade_action::cancelAllOrders();
-var activationPrice = line[1] + (getSecPriceStep()* 2) ;
+var activationPrice = line[1] + (getSecPriceStep()* priceStepCount) ;
 curShortOrder = setOrder(OP_SELL, line[1], calcQuantity(line[1]), COND_ASK, activationPrice );
 if (not curShortOrder) {
       signal::output(getLastErrorMessage());
@@ -121,7 +123,7 @@ else
 {
    signal::output("Обновили шорт. Цена: " + line[1] + " Цена Активации: " + activationPrice);
 }
-activationPrice =  line[0] - (getSecPriceStep()* 2);
+activationPrice =  line[0] - (getSecPriceStep()* priceStepCount);
 curLongOrder = setOrder(OP_BUY, line[0], calcQuantity(line[0]), COND_BID, activationPrice);
 if (not curLongOrder) {
       signal::output(getLastErrorMessage());
