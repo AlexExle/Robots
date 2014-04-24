@@ -39,10 +39,12 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="WealthLab">
-      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\MS123\Wealth-Lab Developer 6\WealthLab.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\MS123\Wealth-Lab Developer 6\WealthLab.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="WealthLab.Indicators">
-      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\MS123\Wealth-Lab Developer 6\WealthLab.Indicators.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\MS123\Wealth-Lab Developer 6\WealthLab.Indicators.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
