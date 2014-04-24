@@ -12,6 +12,7 @@ extern longPer = 50;
 extern shortPer = 22;
 //количество шагов цены на которое будет изменяться цена активации заявок на вход в позицию
 extern priceStepCount = 2;
+
 var count = 0;
 
 //id текущего стопа
@@ -22,9 +23,15 @@ static curShortOrder;
 static curLongOrder;
 // цена входа
 static enterPrice;
+// коэффициент выставления заявки
+static quantityRate
+// 0 - не в позиции, 1 - лонг, -1 - шорт
+static position;
 
 function init()
 {
+	position = 0;
+	quantityRate = 1;
     count = shortPer+1;
 	setInitCandles(shortPer);
 	setBounds(0, longPer, 0);
@@ -33,6 +40,32 @@ function init()
 	setBounds(3, shortPer, 0);
 }
 
+function updateRate(var entPrice, var exitPrice, var posDirection)
+{
+	if (posDirection < 0)
+	{
+		if(entPrice > exitPrice)
+		{
+			quantityRate = quantityRate + 0.2;
+		}
+		else
+		{
+			quantityRate = 1;
+		}
+	}
+	if (posDirection > 0)
+	{
+		if(entPrice < exitPrice)
+		{
+			quantityRate = quantityRate + 0.2;
+		}
+		else
+		{
+			quantityRate = 1;
+		}
+	}
+	signal::output("Новый коэфф: " + quantityRate);
+}
 function getSecPriceStep()
 {
 	var secInfo = getSecInfo();
@@ -42,7 +75,7 @@ function getSecPriceStep()
 //рассчет размера входа. можно добавить плавающий коэффициент (при успешных сделаках он 1, при убыточных увеличивается)
 function calcQuantity(var price)
 {
-	return floor(1000/price);
+	return floor((1000 * quantityRate)/price);
 }
 
 //функция для установки ордера (кредит включен!)
@@ -174,20 +207,40 @@ function onOrder(var id)
 {
 	var order = getOrder(id);
 	//если полностью вошли в позицию - закрываем все заявки (точнее одну на противоположенной границе)
-	//вошли в шорт
-	if (id == curShortOrder && order["status"] == OS_MATCHED)
+	if (order["status"] == OS_MATCHED)
 	{
-		trade_action::cancelAllOrders();
-		signal::output("Зашли полностью в шорт");
-	}
-	else
-	{
-		//зашли в лонг
-		if (id == curLongOrder && order["status"] == OS_MATCHED)
+		var price =	order["price"];
+		//вошли в шорт
+		if (id == curShortOrder)
 		{
-			trade_action::cancelAllOrders();
-			signal::output("Зашли полностью в лонг");
+			trade_action::cancelAllOrders();			
+			signal::output("Зашли полностью в шорт. Цена :" + price);
+			position = -1;
+			enterPrice = price;
 		}
+		else		
+			//зашли в лонг
+			if (id == curLongOrder )
+			{
+				trade_action::cancelAllOrders();
+				signal::output("Зашли полностью в лонг. Цена :" + price);
+				position = 1;
+				enterPrice = price;
+			}
+			else
+				{				
+					var stop = getStopOrder(curStopOrder);
+					//вышли из позиции
+					if (order["orderno"] == stop["orderno"] && getSecBalance() == 0)
+					{
+						price = stop["sl_activationprice"];
+						signal::output("Вышли из позиции. Цена активации :" + price);
+						updateOrders();
+						updateRate(enterPrice, price, position);
+						enterPrice = 0;
+						position = 0;
+					}
+				}
 	}
 }
 
