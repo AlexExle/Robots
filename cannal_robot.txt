@@ -12,6 +12,8 @@ extern longPer = 50;
 extern shortPer = 22;
 //количество шагов цены на которое будет изменяться цена активации заявок на вход в позицию
 extern priceStepCount = 2;
+extern maxRisk = 0.5;
+extern avalibleMoney = 400000;
 
 var count = 0;
 
@@ -72,10 +74,16 @@ function getSecPriceStep()
 	return as_number(secInfo["minstep"]);
 }
 
+function getSecLotSize()
+{
+	var secInfo = getSecInfo();
+	return as_number(secInfo["lotsize"]);
+}
+
 //рассчет размера входа. можно добавить плавающий коэффициент (при успешных сделаках он 1, при убыточных увеличивается)
 function calcQuantity(var price)
 {
-	return floor((1000 * quantityRate)/price);
+	return floor((avalibleMoney * quantityRate)/(getSecLotSize() * price));
 }
 
 //функция для установки ордера (кредит включен!)
