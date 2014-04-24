@@ -282,11 +282,6 @@ function calc()
 
 function onNewCandle() 
 {
-	signal::output("***************** LOG*****************");
-	signal::output("curStopOrder :" + curStopOrder);
-	signal::output("curShortOrder :" + curShortOrder);
-	signal::output("curLongOrder :" + curLongOrder);	
-	signal::output("***************** END LOG*****************");
 	//если нет позиции - обновляем заявки
 	if(getSecBalance() == 0)
 	{
@@ -297,4 +292,9 @@ function onNewCandle()
 	{	  
 		updateStopOrder();
 	}
+	signal::output("***************** LOG*****************");
+	signal::output("curStopOrder :" + curStopOrder);
+	signal::output("curShortOrder :" + curShortOrder);
+	signal::output("curLongOrder :" + curLongOrder);	
+	signal::output("***************** END LOG*****************");
 }
