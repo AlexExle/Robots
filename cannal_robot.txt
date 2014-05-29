@@ -14,6 +14,8 @@ extern shortPer = 22;
 extern priceStepCount = 2;
 extern maxRisk = 0.5;
 extern avalibleMoney = 400000;
+//лот сайз в ручную. если нет, то будет брать из информации о инструменте (тест на ММА транзаке показал что инфа там может быть битая)
+extern lotSize = 0;
 
 var count = 0;
 
@@ -76,8 +78,13 @@ function getSecPriceStep()
 
 function getSecLotSize()
 {
-	var secInfo = getSecInfo();
-	return as_number(secInfo["lotsize"]);
+	if (lotSize == 0) {
+		var secInfo = getSecInfo();
+		return as_number(secInfo["lotsize"]);
+	}
+	else {
+		return lotSize;
+	}
 }
 
 //рассчет размера входа. можно добавить плавающий коэффициент (при успешных сделаках он 1, при убыточных увеличивается)
