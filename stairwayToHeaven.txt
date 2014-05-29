@@ -8,8 +8,11 @@
 //short min
 //#line 3 dashed #ff0000
 
+//шаг лесенки
 extern step = 50;
+//размер доли
 extern quantityOfShare = 22;
+//макс колво долей
 extern maxShares = 2;
 //количество шагов цены на которое будет изменяться цена активации заявок на вход в позицию
 extern priceStepCount = 5;
