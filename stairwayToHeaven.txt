@@ -8,47 +8,84 @@
 //short min
 //#line 3 dashed #ff0000
 
-//С€Р°Рі Р»РµСЃРµРЅРєРё
+//шаг лесенки
 extern step = 50;
-//СЂР°Р·РјРµСЂ РґРѕР»Рё
+extern offset = 0;
+//размер доли
 extern quantityOfShare = 22;
-//РјР°РєСЃ РєРѕР»РІРѕ РґРѕР»РµР№
+//макс колво долей
 extern maxShares = 2;
-//РєРѕР»РёС‡РµСЃС‚РІРѕ С€Р°РіРѕРІ С†РµРЅС‹ РЅР° РєРѕС‚РѕСЂРѕРµ Р±СѓРґРµС‚ РёР·РјРµРЅСЏС‚СЊСЃСЏ С†РµРЅР° Р°РєС‚РёРІР°С†РёРё Р·Р°СЏРІРѕРє РЅР° РІС…РѕРґ РІ РїРѕР·РёС†РёСЋ
+//количество шагов цены на которое будет изменяться цена активации заявок на вход в позицию
 extern priceStepCount = 5;
 //extern maxRisk = 0.5;
 extern avalibleMoney = 400000;
+//
+extern lotSize = 0;
+
+extern isForts = 1;
+
+extern "string" clientId = "client";
 
 var count = 0;
 
 static startPoint = 0;
 
-static lowLevel;
+static lowPoint;
 
-static highLevel;
-//id С‚РµРєСѓС‰РµРіРѕ СЃС‚РѕРїР°
+static highPoint;
+//id текущего стопа
 static curStopOrder;
-//id РїРѕР·РёС†РёРё РЅР° С€РѕСЂС‚
+//id позиции на шорт
 static curShortOrder;
-//id РїРѕР·РёС†РёРё РЅР° Р»РѕРЅРі
+//id позиции на лонг
 static curLongOrder;
-// С†РµРЅР° РІС…РѕРґР°
+// цена входа
 static enterPrice;
-// РєРѕСЌС„С„РёС†РёРµРЅС‚ РІС‹СЃС‚Р°РІР»РµРЅРёСЏ Р·Р°СЏРІРєРё
+// коэффициент выставления заявки
 static quantityRate;
-// 0 - РЅРµ РІ РїРѕР·РёС†РёРё, 1 - Р»РѕРЅРі, -1 - С€РѕСЂС‚
 static position;
+static fortsPositionSize = 0;
 
 function init()
 {
 	position = 0;
 	quantityRate = 1;
+	if (offset >= step) {
+		lackHistory();
+	}
+	requestFORTSPositions(clientId);
     //count = shortPer+1;
 	//setInitCandles(shortPer);
 	//setBounds(0, longPer, 0);
 	//setBounds(1, longPer, 0);
 	//setBounds(2, shortPer, 0);
 	//setBounds(3, shortPer, 0);
+}
+
+function getSecBalanceWrapper()
+{
+	if (isForts == 0)
+	{
+		return getSecBalance();
+	}
+	else
+	{
+		return fortsPositionSize;
+		// all difficult
+	}
+}
+
+function onEnvEvent(var event)
+{
+  if (event == "CLIENT_HOLDINGS") {
+		var secInf = getSecInfo();
+		var fortsPos = getFORTSPosition(clientId, secInf["secid"]);    
+		signal::output("secInf :" + secInf["secid"]);
+		signal::output("getClient :" + clientId);
+		signal::output("FORST position :" + fortsPos["totalnet"]);
+		
+		fortsPositionSize = fortsPos["totalnet"];
+  }
 }
 
 function updateRate(var entPrice, var exitPrice, var posDirection)
@@ -75,7 +112,7 @@ function updateRate(var entPrice, var exitPrice, var posDirection)
 			quantityRate = 1;
 		}
 	}
-	signal::output("РќРѕРІС‹Р№ РєРѕСЌС„С„: " + quantityRate);
+	signal::output("Новый коэфф: " + quantityRate);
 }
 function getSecPriceStep()
 {
@@ -85,23 +122,34 @@ function getSecPriceStep()
 
 function getSecLotSize()
 {
-	var secInfo = getSecInfo();
-	return as_number(secInfo["lotsize"]);
+	if (lotSize == 0) {
+		var secInfo = getSecInfo();
+		return as_number(secInfo["lotsize"]);
+	}
+	else {
+		return lotSize;
+	}
 }
 
-//СЂР°СЃСЃС‡РµС‚ СЂР°Р·РјРµСЂР° РІС…РѕРґР°. РјРѕР¶РЅРѕ РґРѕР±Р°РІРёС‚СЊ РїР»Р°РІР°СЋС‰РёР№ РєРѕСЌС„С„РёС†РёРµРЅС‚ (РїСЂРё СѓСЃРїРµС€РЅС‹С… СЃРґРµР»Р°РєР°С… РѕРЅ 1, РїСЂРё СѓР±С‹С‚РѕС‡РЅС‹С… СѓРІРµР»РёС‡РёРІР°РµС‚СЃСЏ)
+//рассчет размера входа. можно добавить плавающий коэффициент (при успешных сделаках он 1, при убыточных увеличивается)
 function calcQuantity(var price)
 {
+	var currentPos = getSecBalanceWrapper();
+	
+	// getSecBalance() > 0 && round(abs(getSecBalance())/quantityOfShare) == 1)
 	return floor((avalibleMoney * quantityRate)/(getSecLotSize() * price));
 }
 
-//С„СѓРЅРєС†РёСЏ РґР»СЏ СѓСЃС‚Р°РЅРѕРІРєРё РѕСЂРґРµСЂР° (РєСЂРµРґРёС‚ РІРєР»СЋС‡РµРЅ!)
+//функция для установки ордера (кредит включен!)
 function setOrder(var orderType, var price, var quantity, var condition, var conditionPrice)
 {
-	// РЎРѕР·РґР°РЅРёРµ С…РµС€Р°
+	if (quantity == 0 || price == 0 || conditionPrice == 0)
+	{
+		return 0;
+	}
 	var order = new_object("hash");
 
-	// Р—Р°РїРѕР»РЅРµРЅРёРµ РїР°СЂР°РјРµСЂРѕРІ С…РµС€Р°
+	// Заполнение парамеров хеша
 	order["operation"] = orderType;
 	order["quantity"] = quantity;
 	order["usecredit"] = true;
@@ -110,24 +158,24 @@ function setOrder(var orderType, var price, var quantity, var condition, var con
 	order["condition"] = condition;
 	order["condvalue"] = conditionPrice;
 
-	// Р’С‹СЃС‚Р°РІР»РµРЅРёРµ Р·Р°СЏРІРєСѓ РЅР° Р±РёСЂР¶Сѓ
+	// Выставление заявку на биржу
 	return trade_action::transactMultiple(order);
 }
 
-//С„СѓРЅРєС†РёСЏ РґР»СЏ СѓСЃС‚Р°РЅРѕРІРєРё СЃС‚РѕРї РѕСЂРґРµСЂР°
+//функция для установки стоп ордера
 function setStopOrder(var orderType, var price)
 {
 	var stop = new_object("hash");
 
-	// Р—Р°СЏРІРєР° РЅР° РїСЂРѕРґР°Р¶Сѓ
+	// Заявка на продажу
 	stop["operation"] = orderType;
 
-	// Р§Р°СЃС‚СЊ Stop Loss
+	// Часть Stop Loss
 	stop["sl_activationprice"] = price;
 	stop["sl_quantity"] = "100%" ;
 	stop["validbefore"] = TILL_CANCELED;
 
-	// Р’С‹СЃС‚Р°РІР»РµРЅРёРµ Р·Р°СЏРІРєРё РЅР° СЂС‹РЅРѕРє
+	// Выставление заявки на рынок
 	return trade_action::transactMultiple(stop);
 }
 
@@ -161,41 +209,41 @@ function getMax(var period)
 	return result;
 }
 
-//РѕР±РЅРѕРІР»СЏРµРј РѕСЂРґРµСЂР°
+//обновляем ордера
 function updateOrders()
 {
-	//СЃС‚Р°СЂС‹Рµ РІ СѓС‚РёР»СЊ
+	//старые в утиль
 	trade_action::cancelAllOrders();
 	
-	var activationPrice = line[1] + (getSecPriceStep()* priceStepCount) ;
-	curShortOrder = setOrder(OP_SELL, line[1], calcQuantity(line[1]), COND_ASK, activationPrice );
+	var activationPrice = line[0] - step + (getSecPriceStep()* priceStepCount) ;
+	curShortOrder = setOrder(OP_SELL, line[0] - step, calcQuantity( line[0] - step ), COND_ASK, activationPrice );
 	if (not curShortOrder) 
 	{
 		  signal::output(getLastErrorMessage());
 	}
 	else
 	{
-	   signal::output("РћР±РЅРѕРІРёР»Рё С€РѕСЂС‚. Р¦РµРЅР°: " + line[1] + " Р¦РµРЅР° РђРєС‚РёРІР°С†РёРё: " + activationPrice);
+	   signal::output("Вошли в шорт: " + line[1] + " цена активации: " + activationPrice);
 	}
 	
-	activationPrice =  line[0] - (getSecPriceStep()* priceStepCount);
-	curLongOrder = setOrder(OP_BUY, line[0], calcQuantity(line[0]), COND_BID, activationPrice);
+	activationPrice =  line[0] + step - (getSecPriceStep()* priceStepCount);
+	curLongOrder = setOrder(OP_BUY, line[0] + step , calcQuantity( line[0] + step ), COND_BID, activationPrice);
 	if (not curLongOrder) 
 	{
 		  signal::output(getLastErrorMessage());
 	}
 	else
 	{
-		signal::output("РћР±РЅРѕРІРёР»Рё Р»РѕРЅРі. Р¦РµРЅР°: " + line[0] + " Р¦РµРЅР° РђРєС‚РёРІР°С†РёРё: " + activationPrice );
+		signal::output("Вошли в лонг: " + line[0] + " цена активации: " + activationPrice );
 	}
 }
 
-//РѕР±РЅРѕРІР»СЏРµРј СЃС‚РѕРїС‹
+//обновляем стопы
 function updateStopOrder()
 {
 	trade_action::cancelAllOrders();
 	trade_action::cancelStopOrder(curStopOrder);
-	//Р±СѓРјР°Рі > 0? СЃС‚РѕРёРј РІ Р»РѕРЅРіРµ, Р·РЅР°С‡РёС‚ СЃС‚РѕРї-Р·Р°СЏРІРєР° РЅР° С€РѕСЂС‚
+	//бумаг > 0? стоим в лонге, значит стоп-заявка на шорт
 	if(getSecBalance()> 0)
 	{
 		curStopOrder = setStopOrder(OP_SELL, line[3]);
@@ -214,44 +262,44 @@ function updateStopOrder()
 	}
 	else
 	{
-		signal::output("РћР±РЅРѕРІРёР»Рё СЃС‚РѕРїС‹.");
+		signal::output("Обновили стоп.");
 	}
 }
 
 
-//РїРѕ РѕСЂРґРµСЂСѓ РјС‹ РґРѕР»Р¶РЅС‹ СЃРјРѕС‚СЂРµС‚СЊ Р·Р°РєСЂС‹Р»СЃСЏ Р»Рё РѕСЂРґРµСЂ, РµСЃР»Рё РґР°, С‚Рѕ РґРµР»Р°РµРј С‚Рѕ С‡С‚Рѕ РЅСѓР¶РЅРѕ РїРѕСЃР»Рµ РїРѕР»РЅРѕРіРѕ РІС…РѕРґР°
+//по ордеру мы должны смотреть закрылся ли ордер, если да, то делаем то что нужно после полного входа
 function onOrder(var id)
 {
 	var order = getOrder(id);
-	//РµСЃР»Рё РїРѕР»РЅРѕСЃС‚СЊСЋ РІРѕС€Р»Рё РІ РїРѕР·РёС†РёСЋ - Р·Р°РєСЂС‹РІР°РµРј РІСЃРµ Р·Р°СЏРІРєРё (С‚РѕС‡РЅРµРµ РѕРґРЅСѓ РЅР° РїСЂРѕС‚РёРІРѕРїРѕР»РѕР¶РµРЅРЅРѕР№ РіСЂР°РЅРёС†Рµ)
+	//если полностью вошли в позицию - закрываем все заявки (точнее одну на противоположенной границе)
 	if (order["status"] == OS_MATCHED)
 	{
 		var price =	order["price"];
-		//РІРѕС€Р»Рё РІ С€РѕСЂС‚
+		//вошли в шорт
 		if (id == curShortOrder)
 		{
 			trade_action::cancelAllOrders();			
-			signal::output("Р—Р°С€Р»Рё РїРѕР»РЅРѕСЃС‚СЊСЋ РІ С€РѕСЂС‚. Р¦РµРЅР° :" + price);
+			signal::output("Зашли полностью в шорт. Цена :" + price);
 			position = -1;
 			enterPrice = price;
 		}
 		else		
-			//Р·Р°С€Р»Рё РІ Р»РѕРЅРі
+			//зашли в лонг
 			if (id == curLongOrder )
 			{
 				trade_action::cancelAllOrders();
-				signal::output("Р—Р°С€Р»Рё РїРѕР»РЅРѕСЃС‚СЊСЋ РІ Р»РѕРЅРі. Р¦РµРЅР° :" + price);
+				signal::output("Зашли полностью в лонг. Цена :" + price);
 				position = 1;
 				enterPrice = price;
 			}
 			else
 				{				
 					var stop = getStopOrder(curStopOrder);
-					//РІС‹С€Р»Рё РёР· РїРѕР·РёС†РёРё
+					//вышли из позиции
 					if (order["orderno"] == stop["orderno"] && getSecBalance() == 0)
 					{
 						price = stop["sl_activationprice"];
-						signal::output("Р’С‹С€Р»Рё РёР· РїРѕР·РёС†РёРё. Р¦РµРЅР° Р°РєС‚РёРІР°С†РёРё :" + price);
+						signal::output("Вышли из позиции. Цена активации :" + price);
 						updateOrders();
 						updateRate(enterPrice, price, position);
 						enterPrice = 0;
@@ -261,29 +309,38 @@ function onOrder(var id)
 	}
 }
 
-// РїРѕ С‚СЂРµР№РґСѓ РёР·РјРµРЅСЏРµРј РєРѕР»-РІРѕ Р±СѓРјР°Рі, С‡С‚РѕР±С‹ РїРѕРЅРёРјР°С‚СЊ РІ Р»РѕРЅРіРµ РјС‹ РёР»Рё РІ С€РѕСЂС‚Рµ
+// по трейду изменяем кол-во бумаг, чтобы понимать в лонге мы или в шорте
 function onTrade(var id) 
 {
 	var trade = getTrade(id);
 	if (trade["operation"]  == OP_BUY)
 	{	
-		signal::output("РљСѓРїРёР»Рё "+trade["quantity"]);
+		signal::output("Купили "+trade["quantity"]);
 	}
 	else
 	{	
-		signal::output("РџСЂРѕРґР°Р»Рё "+trade["quantity"]);
+		signal::output("Продали "+trade["quantity"]);
 	}
-
+	if (isForts > 0 )
+	{
+		fortsPositionSize = trade["currentpos"];
+	}
 }
 
 function calc()
 {
-	if (startPoint == 0){
+	signal::output("time :" + getFormattedDateTime(getServerTime()) );
+	signal::output("high Point:" + highPoint);
+	signal::output("high Price:" + high);
+	signal::output("low Point:" + lowPoint);
+	signal::output("low Price:" + low);
+	if (startPoint == 0)
+	{
 		startPoint = open;
-		startPoint = startPoint - fmod(startPoint, step);
+		startPoint = startPoint - fmod(startPoint, step) + offset;
 		line[0] = startPoint;
-		lowLevel = startPoint - step;
-		highLevel = startPoint + step;
+		lowPoint = startPoint - step;
+		highPoint = startPoint + step;
 	}
 	else{
 		if (high >= highPoint)
@@ -301,35 +358,48 @@ function calc()
 		  }
 		  else
 		  {
-			line[0] = line[0][-1]
+			line[0] = line[0][-1];
 		  }
 		}
 	}	
 	
-	// РѕР±РЅРѕРІР»СЏС‚СЊ РїРѕ РїСЂРµРґС‹РґСѓС‰РµРјСѓ РІС…РѕРґСѓ
+	// обновлять по предыдущему входу
     //if (getSecBalance() == 0)
-    //РІС…РѕРґ РІ РїРѕР·РёС†РёСЋ РѕРґРЅРёРј РєРѕРЅС‚СЂР°РєС‚РѕРј РїРѕ РѕР±Рµ СЃС‚РѕСЂРѕРЅС‹
+    //вход в позицию одним контрактом по обе стороны
     //if (getSecBalance() > 0 && round(abs(getSecBalance())/quantityOfShare) == 1)
-    // СЃС‚РѕРї Рё РїРµСЂРµРІРѕСЂРѕС‚ РІ РїСЂРѕС‚РёРІРѕРїРѕР»РѕР¶РµРЅРЅСѓСЋ СЃС‚РѕСЂРѕРЅСѓ. РѕРїСЂРµРґРµР»СЏРµРј СЃС‚РѕСЂРѕРЅСѓ РїРѕ РєРѕР»РІСѓ РёРЅСЃС‚СЂСѓРјРµРЅС‚РѕРІ >0 РёР»Рё <0
+    // стоп и переворот в противоположенную сторону. определяем сторону по колву инструментов >0 или <0
     //if (getSecBalance() > 0 && round(abs(getSecBalance())/quantityOfShare) == 2)
-    //СЃС‚РѕРї Рё РїРµСЂРµРІРѕСЂРѕС‚ РІ РїСЂРѕС‚РёРІРѕРїРѕР»РѕР¶РµРЅРЅСѓСЋ СЃС‚РѕСЂРѕРЅРѕСѓ Рё С‚РµР№Рє РїСЂРѕС„РёС‚ РЅР° РѕРґРЅСѓ РґРѕР»СЋ РІ РґСЂСѓРіСѓСЋ.
+    //стоп и переворот в противоположенную стороноу и тейк профит на одну долю в другую.
 }
 
-function onNewCandle() 
-{
-	//РµСЃР»Рё РЅРµС‚ РїРѕР·РёС†РёРё - РѕР±РЅРѕРІР»СЏРµРј Р·Р°СЏРІРєРё
-	if(getSecBalance() == 0)
+function updateState() 
+{	
+	//if(getSecBalanceWrapper() == 0)
+	//{
+		//updateOrdersupdateOrders();
+	//}	
+	//else
+	//{	  
+		//if (   //if (getSecBalance() > 0 && round(abs(getSecBalance())/quantityOfShare) == 1))
+		//updateStopOrder();
+	//}
+	//signal::output("***************** LOG*****************");
+	if (isForts > 0)
 	{
-		updateOrders();
+		signal::output("Current FORTS position :" + getSecBalanceWrapper());
 	}
-	//РµСЃР»Рё РµСЃС‚СЊ - РѕР±РЅРѕРІР»СЏРµРј СЃС‚РѕРїС‹
-	else
-	{	  
-		updateStopOrder();
-	}
-	signal::output("***************** LOG*****************");
-	signal::output("curStopOrder :" + curStopOrder);
-	signal::output("curShortOrder :" + curShortOrder);
-	signal::output("curLongOrder :" + curLongOrder);	
-	signal::output("***************** END LOG*****************");
+		
+	//signal::output("***************** END LOG*****************");
+}
+
+
+// BUTTONS FOR TESTING //
+
+//Shift + 1
+function onKeyDown(var key)
+{
+  if (key == chr2num("1") and isKeyPressed(KEY_LSHIFT)) 
+  {
+     signal::outputMultiple("FORST position :" + getSecBalanceWrapper());
+  }
 }
