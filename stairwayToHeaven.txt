@@ -1,34 +1,23 @@
 #samewindow
-//long max
+//stairway
 #line 0 solid #911e42 
-//long min
-//#line 1 solid #0000ff
-//short max
-//#line 2 dashed #000000
-//short min
-//#line 3 dashed #ff0000
 
 //шаг лесенки
 extern step = 50;
+//начальный сдвиг 
 extern offset = 0;
 //размер доли
 extern quantityOfShare = 22;
-//макс колво долей
-extern maxShares = 2;
 //количество шагов цены на которое будет изменяться цена активации заявок на вход в позицию
 extern priceStepCount = 5;
-//extern maxRisk = 0.5;
-extern avalibleMoney = 400000;
-//
+
 extern lotSize = 0;
 
 extern isForts = 1;
 
 extern "string" clientId = "client";
 
-var count = 0;
-
-static startPoint = 0;
+static currentPoint = 0;
 
 static lowPoint;
 
@@ -48,18 +37,19 @@ static fortsPositionSize = 0;
 
 function init()
 {
+	setClient(clientId);
 	position = 0;
 	quantityRate = 1;
 	if (offset >= step) {
 		lackHistory();
 	}
 	requestFORTSPositions(clientId);
-    //count = shortPer+1;
-	//setInitCandles(shortPer);
-	//setBounds(0, longPer, 0);
-	//setBounds(1, longPer, 0);
-	//setBounds(2, shortPer, 0);
-	//setBounds(3, shortPer, 0);
+ 
+	currentPoint = open;
+	currentPoint = currentPoint - fmod(currentPoint, step) + offset;
+	line[0] = currentPoint;
+	lowPoint = currentPoint - step;
+	highPoint = currentPoint + step;
 }
 
 function getSecBalanceWrapper()
@@ -71,7 +61,6 @@ function getSecBalanceWrapper()
 	else
 	{
 		return fortsPositionSize;
-		// all difficult
 	}
 }
 
@@ -88,32 +77,6 @@ function onEnvEvent(var event)
   }
 }
 
-function updateRate(var entPrice, var exitPrice, var posDirection)
-{
-	if (posDirection < 0)
-	{
-		if(entPrice > exitPrice)
-		{
-			quantityRate = quantityRate + 0.2;
-		}
-		else
-		{
-			quantityRate = 1;
-		}
-	}
-	if (posDirection > 0)
-	{
-		if(entPrice < exitPrice)
-		{
-			quantityRate = quantityRate + 0.2;
-		}
-		else
-		{
-			quantityRate = 1;
-		}
-	}
-	signal::output("Новый коэфф: " + quantityRate);
-}
 function getSecPriceStep()
 {
 	var secInfo = getSecInfo();
@@ -131,13 +94,24 @@ function getSecLotSize()
 	}
 }
 
-//рассчет размера входа. можно добавить плавающий коэффициент (при успешных сделаках он 1, при убыточных увеличивается)
-function calcQuantity(var price)
+function calculateSharesCount()
 {
-	var currentPos = getSecBalanceWrapper();
+	var	result = round(
+				 abs(
+					getSecBalanceWrapper()
+					)/getSecLotSize()
+					/quantityOfShare
+				);
 	
-	// getSecBalance() > 0 && round(abs(getSecBalance())/quantityOfShare) == 1)
-	return floor((avalibleMoney * quantityRate)/(getSecLotSize() * price));
+
+	signal::output("shares :" + result);
+	return result;
+}
+
+//рассчет размера входа
+function calcQuantity(var shares)
+{		
+	return (quantityOfShare * shares);
 }
 
 //функция для установки ордера (кредит включен!)
@@ -152,7 +126,14 @@ function setOrder(var orderType, var price, var quantity, var condition, var con
 	// Заполнение парамеров хеша
 	order["operation"] = orderType;
 	order["quantity"] = quantity;
-	order["usecredit"] = true;
+	if (isForts > 0)
+	{
+		order["usecredit"] = false;
+	}
+	else
+	{
+		order["usecredit"] = true;
+	}
 	order["price"] = price;
 	order["validbefore"] = TILL_CANCELED;
 	order["condition"] = condition;
@@ -210,32 +191,121 @@ function getMax(var period)
 }
 
 //обновляем ордера
-function updateOrders()
+function updateOrders(var currentShare)
 {
 	//старые в утиль
 	trade_action::cancelAllOrders();
-	
-	var activationPrice = line[0] - step + (getSecPriceStep()* priceStepCount) ;
-	curShortOrder = setOrder(OP_SELL, line[0] - step, calcQuantity( line[0] - step ), COND_ASK, activationPrice );
-	if (not curShortOrder) 
-	{
+	var activationPrice = 0;
+	//заявки на обе стороны
+	if (currentShare == 0)
+	{	
+		
+		activationPrice = line[0] - step + (getSecPriceStep()* priceStepCount) ;
+		curShortOrder = setOrder(OP_SELL, line[0] - step, calcQuantity(1), COND_ASK, activationPrice );
+		if (not curShortOrder) 
+		{
+			  signal::output(getLastErrorMessage());
+		}
+		else
+		{
+		   signal::output("Заявка на ШОРТ: " + line[0] + "| цена активации: " + activationPrice);
+		}
+		
+		activationPrice = line[0] + step - (getSecPriceStep()* priceStepCount);
+		curLongOrder = setOrder(OP_BUY, line[0] + step , calcQuantity(1), COND_BID, activationPrice);
+		if (not curLongOrder) 
+		{
 		  signal::output(getLastErrorMessage());
+		}
+		else
+		{
+			signal::output("Заявка на ЛОНГ: " + line[0] + " цена активации: " + activationPrice );
+		}
 	}
-	else
+	if (currentShare == 1)
+	{	
+		//в лонге
+		if (getSecBalanceWrapper() > 0)
+		{
+			activationPrice = line[0] - step + (getSecPriceStep()* priceStepCount) ;
+			curShortOrder = setOrder(OP_SELL, line[0] - step, calcQuantity(3), COND_ASK, activationPrice );
+			if (not curShortOrder) 
+			{
+				  signal::output(getLastErrorMessage());
+			}
+			else
+			{
+			   signal::output("Заявка на ШОРТ: " + line[0] + "| цена активации: " + activationPrice);
+			}
+		}
+		else // в шорте
+		{			
+			activationPrice = line[0] + step - (getSecPriceStep()* priceStepCount);
+			curLongOrder = setOrder(OP_BUY, line[0] + step , calcQuantity(3), COND_BID, activationPrice);
+			if (not curLongOrder) 
+			{
+			  signal::output(getLastErrorMessage());
+			}
+			else
+			{
+				signal::output("Заявка на ЛОНГ: " + line[0] + " цена активации: " + activationPrice );
+			}
+		}
+	}
+	if (currentShare == 2)
 	{
-	   signal::output("Вошли в шорт: " + line[1] + " цена активации: " + activationPrice);
+		//в лонге
+		if (getSecBalanceWrapper() > 0)
+		{
+			activationPrice = line[0] - step + (getSecPriceStep()* priceStepCount) ;
+			curShortOrder = setOrder(OP_SELL, line[0] - step, calcQuantity(3), COND_ASK, activationPrice );
+			if (not curShortOrder) 
+			{
+				  signal::output(getLastErrorMessage());
+			}
+			else
+			{
+			   signal::output("Заявка на ШОРТ: " + line[0] + "| цена активации: " + activationPrice);
+			}
+			
+			activationPrice = line[0] + step - (getSecPriceStep()* priceStepCount);
+			curLongOrder = setOrder(OP_SELL, line[0] + step , calcQuantity(1), COND_BID, activationPrice);
+			if (not curLongOrder) 
+			{
+			  signal::output(getLastErrorMessage());
+			}
+			else
+			{
+				signal::output("Заявка на ШОРТ, выход до одной доли: " + line[0] + " цена активации: " + activationPrice );
+			}		
+		}
+		else // в шорте
+		{
+		
+			activationPrice = line[0] - step + (getSecPriceStep()* priceStepCount) ;
+			curShortOrder = setOrder(OP_SELL, line[0] - step, calcQuantity(1), COND_ASK, activationPrice );
+			if (not curShortOrder) 
+			{
+				  signal::output(getLastErrorMessage());
+			}
+			else
+			{
+			   signal::output("Заявка на ЛОНГ, выход до одной доли: " + line[0] + "| цена активации: " + activationPrice);
+			}
+			
+			activationPrice = line[0] + step - (getSecPriceStep()* priceStepCount);
+			curLongOrder = setOrder(OP_BUY, line[0] + step , calcQuantity(3), COND_BID, activationPrice);
+			if (not curLongOrder) 
+			{
+			  signal::output(getLastErrorMessage());
+			}
+			else
+			{
+				signal::output("Заявка на ЛОНГ: " + line[0] + " цена активации: " + activationPrice );
+			}
+		}
 	}
 	
-	activationPrice =  line[0] + step - (getSecPriceStep()* priceStepCount);
-	curLongOrder = setOrder(OP_BUY, line[0] + step , calcQuantity( line[0] + step ), COND_BID, activationPrice);
-	if (not curLongOrder) 
-	{
-		  signal::output(getLastErrorMessage());
-	}
-	else
-	{
-		signal::output("Вошли в лонг: " + line[0] + " цена активации: " + activationPrice );
-	}
 }
 
 //обновляем стопы
@@ -271,56 +341,21 @@ function updateStopOrder()
 function onOrder(var id)
 {
 	var order = getOrder(id);
-	//если полностью вошли в позицию - закрываем все заявки (точнее одну на противоположенной границе)
+	
 	if (order["status"] == OS_MATCHED)
 	{
 		var price =	order["price"];
-		//вошли в шорт
-		if (id == curShortOrder)
-		{
-			trade_action::cancelAllOrders();			
-			signal::output("Зашли полностью в шорт. Цена :" + price);
-			position = -1;
-			enterPrice = price;
-		}
-		else		
-			//зашли в лонг
-			if (id == curLongOrder )
-			{
-				trade_action::cancelAllOrders();
-				signal::output("Зашли полностью в лонг. Цена :" + price);
-				position = 1;
-				enterPrice = price;
-			}
-			else
-				{				
-					var stop = getStopOrder(curStopOrder);
-					//вышли из позиции
-					if (order["orderno"] == stop["orderno"] && getSecBalance() == 0)
-					{
-						price = stop["sl_activationprice"];
-						signal::output("Вышли из позиции. Цена активации :" + price);
-						updateOrders();
-						updateRate(enterPrice, price, position);
-						enterPrice = 0;
-						position = 0;
-					}
-				}
+		
+		var newShares = calculateSharesCount();
+		signal::output("Выполнена заявка! Новое количество долей :" + newShares);
+		updateOrders(newShares);		
 	}
 }
 
-// по трейду изменяем кол-во бумаг, чтобы понимать в лонге мы или в шорте
 function onTrade(var id) 
 {
 	var trade = getTrade(id);
-	if (trade["operation"]  == OP_BUY)
-	{	
-		signal::output("Купили "+trade["quantity"]);
-	}
-	else
-	{	
-		signal::output("Продали "+trade["quantity"]);
-	}
+
 	if (isForts > 0 )
 	{
 		fortsPositionSize = trade["currentpos"];
@@ -329,69 +364,42 @@ function onTrade(var id)
 
 function calc()
 {
-	signal::output("time :" + getFormattedDateTime(getServerTime()) );
-	signal::output("high Point:" + highPoint);
-	signal::output("high Price:" + high);
-	signal::output("low Point:" + lowPoint);
-	signal::output("low Price:" + low);
-	if (startPoint == 0)
+	if(line[0] == 0)
 	{
-		startPoint = open;
-		startPoint = startPoint - fmod(startPoint, step) + offset;
-		line[0] = startPoint;
-		lowPoint = startPoint - step;
-		highPoint = startPoint + step;
+		line[0] = currentPoint;
 	}
-	else{
-		if (high >= highPoint)
-		{
-		   line[0] = highPoint;
-		   lowPoint =  highPoint - step;
-		   highPoint = highPoint + step;		   
-		}
-		else
-		{ if (low <= lowPoint) 
-		  {
-			 line[0] = lowPoint;
-			 highPoint = lowPoint + step;		   
-		     lowPoint = lowPoint - step;		     
-		  }
-		  else
-		  {
-			line[0] = line[0][-1];
-		  }
-		}
+	if (high >= highPoint)
+	{
+	   line[0] = highPoint;
+	   currentPoint = highPoint;
+	   lowPoint =  highPoint - step;
+	   highPoint = highPoint + step;		   
+	}
+	else
+	{ if (low <= lowPoint) 
+	  {
+		 line[0] = lowPoint;
+		 currentPoint = lowPoint;
+		 highPoint = lowPoint + step;		   
+		 lowPoint = lowPoint - step;		     
+	  }
+	}
+}
+
+
+function onNewCandle() 
+{	
+	var orders = getActiveOrderIDs();
+	if(getSecBalanceWrapper() == 0 && orders.size() == 0)
+	{
+		updateOrders(0);
 	}	
 	
-	// обновлять по предыдущему входу
-    //if (getSecBalance() == 0)
-    //вход в позицию одним контрактом по обе стороны
-    //if (getSecBalance() > 0 && round(abs(getSecBalance())/quantityOfShare) == 1)
-    // стоп и переворот в противоположенную сторону. определяем сторону по колву инструментов >0 или <0
-    //if (getSecBalance() > 0 && round(abs(getSecBalance())/quantityOfShare) == 2)
-    //стоп и переворот в противоположенную стороноу и тейк профит на одну долю в другую.
-}
-
-function updateState() 
-{	
-	//if(getSecBalanceWrapper() == 0)
-	//{
-		//updateOrdersupdateOrders();
-	//}	
-	//else
-	//{	  
-		//if (   //if (getSecBalance() > 0 && round(abs(getSecBalance())/quantityOfShare) == 1))
-		//updateStopOrder();
-	//}
-	//signal::output("***************** LOG*****************");
 	if (isForts > 0)
 	{
-		signal::output("Current FORTS position :" + getSecBalanceWrapper());
+		signal::output("Current position :" + getSecBalanceWrapper());
 	}
-		
-	//signal::output("***************** END LOG*****************");
 }
-
 
 // BUTTONS FOR TESTING //
 
@@ -401,5 +409,11 @@ function onKeyDown(var key)
   if (key == chr2num("1") and isKeyPressed(KEY_LSHIFT)) 
   {
      signal::outputMultiple("FORST position :" + getSecBalanceWrapper());
+  }
+  if (key == chr2num("2") and isKeyPressed(KEY_LSHIFT)) 
+  {
+	var newShares = calculateSharesCount();
+	signal::output("Обновляев заявки. Текущее кол-во долей :" + newShares);
+	updateOrders(newShares);		
   }
 }
