@@ -258,7 +258,7 @@ function updateOrders(var currentShare)
 		if (getSecBalanceWrapper() > 0)
 		{
 			activationPrice = line[0] - step + (getSecPriceStep()* priceStepCount) ;
-			curShortOrder = setOrder(OP_SELL, line[0] - step, calcQuantity(3), COND_ASK, activationPrice );
+			curShortOrder = setOrder(OP_SELL, line[0] - step, calcQuantity(4), COND_ASK, activationPrice );
 			if (not curShortOrder) 
 			{
 				  signal::output(getLastErrorMessage());
@@ -294,7 +294,7 @@ function updateOrders(var currentShare)
 			}
 			
 			activationPrice = line[0] + step - (getSecPriceStep()* priceStepCount);
-			curLongOrder = setOrder(OP_BUY, line[0] + step , calcQuantity(3), COND_BID, activationPrice);
+			curLongOrder = setOrder(OP_BUY, line[0] + step , calcQuantity(4), COND_BID, activationPrice);
 			if (not curLongOrder) 
 			{
 			  signal::output(getLastErrorMessage());
