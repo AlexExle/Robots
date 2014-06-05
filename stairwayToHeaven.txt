@@ -2,13 +2,13 @@
 //stairway
 #line 0 solid #911e42 
 
-//шаг лесенки
+//??? ???????
 extern step = 50;
-//начальный сдвиг 
+//????????? ????? 
 extern offset = 0;
-//размер доли
+//?????? ????
 extern quantityOfShare = 22;
-//количество шагов цены на которое будет изменяться цена активации заявок на вход в позицию
+//?????????? ????? ???? ?? ??????? ????? ?????????? ???? ????????? ?????? ?? ???? ? ???????
 extern priceStepCount = 5;
 
 extern lotSize = 0;
@@ -21,19 +21,42 @@ static currentPoint = 0;
 
 static lowPoint;
 
+static needUpdate = 0;
+
 static highPoint;
-//id текущего стопа
+//id ???????? ?????
 static curStopOrder;
-//id позиции на шорт
+//id ??????? ?? ????
 static curShortOrder;
-//id позиции на лонг
+//id ??????? ?? ????
 static curLongOrder;
-// цена входа
+// ???? ?????
 static enterPrice;
-// коэффициент выставления заявки
+// ??????????? ??????????? ??????
 static quantityRate;
 static position;
 static fortsPositionSize = 0;
+
+function CancelAllOrderCustom()
+{
+	var secInf = getSecInfo();
+	var allOrders = getAllOrderIDs();
+	var i = 0;
+	if (allOrders.size() != 0)
+	{
+		while (i < allOrders.size()) {
+			var orderId = allOrders[i];
+			var order = getOrder(orderId);		
+			if (order["secid"] == secInf["secid"] && (order["status"] == OS_WATCHING || order["status"] == OS_ACTIVE))
+			{			
+				trade_action::cancelOrder(order);
+			}
+			i += 1;
+		}
+	}
+	
+	
+}
 
 function init()
 {
@@ -50,6 +73,7 @@ function init()
 	line[0] = currentPoint;
 	lowPoint = currentPoint - step;
 	highPoint = currentPoint + step;
+	needUpdate = 1;
 }
 
 function getSecBalanceWrapper()
@@ -102,19 +126,17 @@ function calculateSharesCount()
 					)/getSecLotSize()
 					/quantityOfShare
 				);
-	
-
-	signal::output("shares :" + result);
+		
 	return result;
 }
 
-//рассчет размера входа
+//??????? ??????? ?????
 function calcQuantity(var shares)
 {		
 	return (quantityOfShare * shares);
 }
 
-//функция для установки ордера (кредит включен!)
+//??????? ??? ????????? ?????? (?????? ???????!)
 function setOrder(var orderType, var price, var quantity, var condition, var conditionPrice)
 {
 	if (quantity == 0 || price == 0 || conditionPrice == 0)
@@ -123,7 +145,7 @@ function setOrder(var orderType, var price, var quantity, var condition, var con
 	}
 	var order = new_object("hash");
 
-	// Заполнение парамеров хеша
+	// ?????????? ????????? ????
 	order["operation"] = orderType;
 	order["quantity"] = quantity;
 	if (isForts > 0)
@@ -134,29 +156,30 @@ function setOrder(var orderType, var price, var quantity, var condition, var con
 	{
 		order["usecredit"] = true;
 	}
+	order["client"] = clientId;
 	order["price"] = price;
 	order["validbefore"] = TILL_CANCELED;
 	order["condition"] = condition;
 	order["condvalue"] = conditionPrice;
 
-	// Выставление заявку на биржу
+	// ??????????? ?????? ?? ?????
 	return trade_action::transactMultiple(order);
 }
 
-//функция для установки стоп ордера
+//??????? ??? ????????? ???? ??????
 function setStopOrder(var orderType, var price)
 {
 	var stop = new_object("hash");
 
-	// Заявка на продажу
+	// ?????? ?? ???????
 	stop["operation"] = orderType;
 
-	// Часть Stop Loss
+	// ????? Stop Loss
 	stop["sl_activationprice"] = price;
 	stop["sl_quantity"] = "100%" ;
 	stop["validbefore"] = TILL_CANCELED;
 
-	// Выставление заявки на рынок
+	// ??????????? ?????? ?? ?????
 	return trade_action::transactMultiple(stop);
 }
 
@@ -190,130 +213,150 @@ function getMax(var period)
 	return result;
 }
 
-//обновляем ордера
+//????????? ??????
 function updateOrders(var currentShare)
 {
-	//старые в утиль
-	trade_action::cancelAllOrders();
+	//?????? ? ?????	
+	 signal::output("Trying to cancel all old orders...");
+	if (isForts >0)
+	{
+		CancelAllOrderCustom();
+	}
+	else
+	{
+		trade_action::cancelBuyOrders();
+		trade_action::cancelSellOrders();
+		trade_action::cancelAllOrders();
+	}
+	
 	var activationPrice = 0;
-	//заявки на обе стороны
+	var enterPrice = 0;
+	//?????? ?? ??? ???????
 	if (currentShare == 0)
 	{	
 		
-		activationPrice = line[0] - step + (getSecPriceStep()* priceStepCount) ;
-		curShortOrder = setOrder(OP_SELL, line[0] - step, calcQuantity(1), COND_ASK, activationPrice );
+		activationPrice = line[0] - step ;
+		enterPrice = line[0] - step - (getSecPriceStep()* priceStepCount);
+		curShortOrder = setOrder(OP_SELL, enterPrice, calcQuantity(1), COND_ASK, activationPrice );
 		if (not curShortOrder) 
 		{
 			  signal::output(getLastErrorMessage());
 		}
 		else
 		{
-		   signal::output("Заявка на ШОРТ: " + line[0] + "| цена активации: " + activationPrice);
+		   signal::output("Created new order , price: " + enterPrice + "| Activation price: " + activationPrice);
 		}
 		
-		activationPrice = line[0] + step - (getSecPriceStep()* priceStepCount);
-		curLongOrder = setOrder(OP_BUY, line[0] + step , calcQuantity(1), COND_BID, activationPrice);
+		activationPrice = line[0] + step ;
+		enterPrice = line[0] + step + (getSecPriceStep()* priceStepCount);
+		curLongOrder = setOrder(OP_BUY, enterPrice, calcQuantity(1), COND_BID, activationPrice);
 		if (not curLongOrder) 
 		{
 		  signal::output(getLastErrorMessage());
 		}
 		else
 		{
-			signal::output("Заявка на ЛОНГ: " + line[0] + " цена активации: " + activationPrice );
+			signal::output("Created new order , price: " + enterPrice + "| Activation price: " + activationPrice );
 		}
 	}
 	if (currentShare == 1)
 	{	
-		//в лонге
+		//? ?????
 		if (getSecBalanceWrapper() > 0)
 		{
-			activationPrice = line[0] - step + (getSecPriceStep()* priceStepCount) ;
-			curShortOrder = setOrder(OP_SELL, line[0] - step, calcQuantity(3), COND_ASK, activationPrice );
+			activationPrice = line[0] - step ;
+			enterPrice = line[0] - step - (getSecPriceStep()* priceStepCount);
+			curShortOrder = setOrder(OP_SELL, enterPrice, calcQuantity(3), COND_ASK, activationPrice );
 			if (not curShortOrder) 
 			{
 				  signal::output(getLastErrorMessage());
 			}
 			else
 			{
-			   signal::output("Заявка на ШОРТ: " + line[0] + "| цена активации: " + activationPrice);
+			   signal::output("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice);
 			}
 		}
-		else // в шорте
+		else // ? ?????
 		{			
-			activationPrice = line[0] + step - (getSecPriceStep()* priceStepCount);
-			curLongOrder = setOrder(OP_BUY, line[0] + step , calcQuantity(3), COND_BID, activationPrice);
+			activationPrice = line[0] + step ;
+			enterPrice = line[0] + step + (getSecPriceStep()* priceStepCount);
+			curLongOrder = setOrder(OP_BUY, enterPrice, calcQuantity(3), COND_BID, activationPrice);
 			if (not curLongOrder) 
 			{
 			  signal::output(getLastErrorMessage());
 			}
 			else
 			{
-				signal::output("Заявка на ЛОНГ: " + line[0] + " цена активации: " + activationPrice );
+				signal::output("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice );
 			}
 		}
 	}
 	if (currentShare == 2)
 	{
-		//в лонге
+		//? ?????
 		if (getSecBalanceWrapper() > 0)
 		{
-			activationPrice = line[0] - step + (getSecPriceStep()* priceStepCount) ;
-			curShortOrder = setOrder(OP_SELL, line[0] - step, calcQuantity(4), COND_ASK, activationPrice );
+			activationPrice = line[0] - step ;
+			enterPrice =  line[0] - step -  (getSecPriceStep()* priceStepCount);
+			curShortOrder = setOrder(OP_SELL, enterPrice, calcQuantity(3), COND_ASK, activationPrice );
 			if (not curShortOrder) 
 			{
 				  signal::output(getLastErrorMessage());
 			}
 			else
 			{
-			   signal::output("Заявка на ШОРТ: " + line[0] + "| цена активации: " + activationPrice);
+			   signal::output("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice);
 			}
 			
-			activationPrice = line[0] + step - (getSecPriceStep()* priceStepCount);
-			curLongOrder = setOrder(OP_SELL, line[0] + step , calcQuantity(1), COND_BID, activationPrice);
+			activationPrice = line[0] + step;
+			enterPrice  = line[0] + step + (getSecPriceStep()* priceStepCount);
+			curLongOrder = setOrder(OP_BUY, enterPrice, calcQuantity(1), COND_BID, activationPrice);
 			if (not curLongOrder) 
 			{
 			  signal::output(getLastErrorMessage());
 			}
 			else
 			{
-				signal::output("Заявка на ШОРТ, выход до одной доли: " + line[0] + " цена активации: " + activationPrice );
+				signal::output("Created new order for take profit of one share, price: " + enterPrice + "| Activation price: " + activationPrice );
 			}		
 		}
-		else // в шорте
+		else // ? ?????
 		{
 		
-			activationPrice = line[0] - step + (getSecPriceStep()* priceStepCount) ;
-			curShortOrder = setOrder(OP_SELL, line[0] - step, calcQuantity(1), COND_ASK, activationPrice );
+			activationPrice = line[0] - step ;
+			enterPrice = line[0] - step - (getSecPriceStep()* priceStepCount);
+			curShortOrder = setOrder(OP_SELL, enterPrice, calcQuantity(1), COND_ASK, activationPrice );
 			if (not curShortOrder) 
 			{
 				  signal::output(getLastErrorMessage());
 			}
 			else
 			{
-			   signal::output("Заявка на ЛОНГ, выход до одной доли: " + line[0] + "| цена активации: " + activationPrice);
+			   signal::output("Created new order for take profit of one share, price: " + enterPrice + "| Activation price: " + activationPrice);
 			}
 			
-			activationPrice = line[0] + step - (getSecPriceStep()* priceStepCount);
-			curLongOrder = setOrder(OP_BUY, line[0] + step , calcQuantity(4), COND_BID, activationPrice);
+			activationPrice = line[0] + step;
+			enterPrice = line[0] + step + (getSecPriceStep()* priceStepCount);
+			curLongOrder = setOrder(OP_BUY, enterPrice, calcQuantity(3), COND_BID, activationPrice);
 			if (not curLongOrder) 
 			{
 			  signal::output(getLastErrorMessage());
 			}
 			else
 			{
-				signal::output("Заявка на ЛОНГ: " + line[0] + " цена активации: " + activationPrice );
+				signal::output("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice );
 			}
 		}
 	}
 	
 }
 
-//обновляем стопы
+//????????? ?????
 function updateStopOrder()
 {
 	trade_action::cancelAllOrders();
 	trade_action::cancelStopOrder(curStopOrder);
-	//бумаг > 0? стоим в лонге, значит стоп-заявка на шорт
+	//????? > 0? ????? ? ?????, ?????? ????-?????? ?? ????
 	if(getSecBalance()> 0)
 	{
 		curStopOrder = setStopOrder(OP_SELL, line[3]);
@@ -332,12 +375,12 @@ function updateStopOrder()
 	}
 	else
 	{
-		signal::output("Обновили стоп.");
+		signal::output("???????? ????.");
 	}
 }
 
 
-//по ордеру мы должны смотреть закрылся ли ордер, если да, то делаем то что нужно после полного входа
+//?? ?????? ?? ?????? ???????? ???????? ?? ?????, ???? ??, ?? ?????? ?? ??? ????? ????? ??????? ?????
 function onOrder(var id)
 {
 	var order = getOrder(id);
@@ -347,8 +390,8 @@ function onOrder(var id)
 		var price =	order["price"];
 		
 		var newShares = calculateSharesCount();
-		signal::output("Выполнена заявка! Новое количество долей :" + newShares);
-		updateOrders(newShares);		
+		signal::output("New position created! New count of shares :" + newShares);
+		//updateOrders(newShares);		
 	}
 }
 
@@ -363,7 +406,7 @@ function onTrade(var id)
 }
 
 function calc()
-{
+{	
 	if(line[0] == 0)
 	{
 		line[0] = currentPoint;
@@ -373,7 +416,8 @@ function calc()
 	   line[0] = highPoint;
 	   currentPoint = highPoint;
 	   lowPoint =  highPoint - step;
-	   highPoint = highPoint + step;		   
+	   highPoint = highPoint + step;		
+	   needUpdate = 1;		     		
 	}
 	else
 	{ if (low <= lowPoint) 
@@ -381,7 +425,8 @@ function calc()
 		 line[0] = lowPoint;
 		 currentPoint = lowPoint;
 		 highPoint = lowPoint + step;		   
-		 lowPoint = lowPoint - step;		     
+		 lowPoint = lowPoint - step;
+		 needUpdate = 1;		     		
 	  }
 	}
 }
@@ -390,14 +435,15 @@ function calc()
 function onNewCandle() 
 {	
 	var orders = getActiveOrderIDs();
-	if(getSecBalanceWrapper() == 0 && orders.size() == 0)
-	{
-		updateOrders(0);
-	}	
-	
+	if(orders.size() == 0 && needUpdate == 1)
+	{		
+		updateOrders(calculateSharesCount());
+		needUpdate = 0;
+	}				
 	if (isForts > 0)
 	{
 		signal::output("Current position :" + getSecBalanceWrapper());
+		signal::output("Current shares :" + calculateSharesCount());
 	}
 }
 
@@ -408,12 +454,25 @@ function onKeyDown(var key)
 {
   if (key == chr2num("1") and isKeyPressed(KEY_LSHIFT)) 
   {
-     signal::outputMultiple("FORST position :" + getSecBalanceWrapper());
+     signal::outputMultiple("Current Position :" + getSecBalanceWrapper());
   }
   if (key == chr2num("2") and isKeyPressed(KEY_LSHIFT)) 
   {
 	var newShares = calculateSharesCount();
-	signal::output("Обновляев заявки. Текущее кол-во долей :" + newShares);
+	signal::output("Updating orders. Count of current shares :" + newShares);
 	updateOrders(newShares);		
   }
+  if (key == chr2num("3") and isKeyPressed(KEY_LSHIFT)) 
+  {
+  signal::output("Try to delete orders");
+	trade_action::cancelBuyOrders();
+	trade_action::cancelSellOrders();
+	trade_action::cancelAllOrders();	
+  }
+  if (key == chr2num("4") and isKeyPressed(KEY_LSHIFT)) 
+  {
+	signal::output("Try to custom delete orders");
+	CancelAllOrderCustom();
+  }
+  
 }
