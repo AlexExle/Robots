@@ -97,7 +97,7 @@ function onEnvEvent(var event)
 		kgo = fortsPos["kgo"];
 		
 		var frotsMoney = getFORTSMoney(clientId);
-		freeMoney  = fortsPos["mfree"];
+		freeMoney  = frotsMoney["mfree"];
   }
 }
 
@@ -121,16 +121,13 @@ function getSecLotSize()
 //??????? ??????? ?????
 function calcQuantity(var price)
 {
+	signal::output("Calculated quantity for order: " + floor((freeMoney * (percentOfQuantuty/100))/(getSecLotSize() * (price * (GoPercent/100)))));
 	return floor((freeMoney * (percentOfQuantuty/100))/(getSecLotSize() * (price * (GoPercent/100))));
 }
 
 //??????? ??? ????????? ?????? (?????? ???????!)
 function setOrder(var orderType, var price, var quantity, var condition, var conditionPrice)
 {
-	if (quantity == 0 || price == 0 || conditionPrice == 0)
-	{
-		return 0;
-	}
 	var order = new_object("hash");
 
 	// ?????????? ????????? ????
