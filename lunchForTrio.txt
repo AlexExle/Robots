@@ -241,11 +241,13 @@ function onTrade(var id)
 function onNewCandle() 
 {		
 	var orders = getActiveOrderIDs();
-	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == 00 && orders.size() == 0 && open < line[0] && fortsPositionSize == 0 )
+	//if 12 00 we need to sale
+	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == 00 && orders.size() == 0 && open < line[0] && getSecBalanceWrapper() == 0 )
 	{
 		updateOrders(OP_SELL, open);
 	}
-	if(getHour(getCandleTime()) == 13 && getMinute(getCandleTime()) == 00 && orders.size() == 0 && open > line[0] && fortsPositionSize == 0)
+	//if 13 00 we need to buy
+	if(getHour(getCandleTime()) == 13 && getMinute(getCandleTime()) == 00 && orders.size() == 0 && open > line[0] && getSecBalanceWrapper() == 0)
 	{
 		updateOrders(OP_BUY, open);
 	}		
@@ -256,25 +258,29 @@ function onNewCandle()
 //Shift + 1
 function onKeyDown(var key)
 {
+// test current position function
   if (key == chr2num("1") and isKeyPressed(KEY_LSHIFT)) 
   {
      signal::outputMultiple("Current Position :" + getSecBalanceWrapper());
   }
-
+//test cancel all orders
   if (key == chr2num("2") and isKeyPressed(KEY_LSHIFT)) 
   {
 	signal::output("Try to custom delete orders");
 	CancelAllOrderCustom();
   }
+  // test time determination
   if (key == chr2num("3") and isKeyPressed(KEY_LSHIFT)) 
   {
 	signal::outputMultiple(getHour(getCandleTime()));
 	signal::outputMultiple(getMinute(getCandleTime()));
   }
+  // test of creating order for sale with stop/take profit
   if (key == chr2num("4") and isKeyPressed(KEY_LSHIFT)) 
   {
 	 updateOrders(OP_SELL, open);
   }
+  // test of creating order for buy with stop/take profit
   if (key == chr2num("5") and isKeyPressed(KEY_LSHIFT)) 
   {
 	  updateOrders(OP_BUY, open);
