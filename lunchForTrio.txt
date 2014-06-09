@@ -121,7 +121,7 @@ function getSecLotSize()
 //??????? ??????? ?????
 function calcQuantity(var price)
 {
-	return floor((freeMoney * (percentOfQuantuty/100))/(getSecLotSize() * (price * (GoPercent/100)));
+	return floor((freeMoney * (percentOfQuantuty/100))/(getSecLotSize() * (price * (GoPercent/100))));
 }
 
 //??????? ??? ????????? ?????? (?????? ???????!)
@@ -163,7 +163,7 @@ function setOrder(var orderType, var price, var quantity, var condition, var con
 //??????? ??? ????????? ???? ??????
 function setStopOrder(var orderType, var stopPrice, var takeProfitPrice, var quantity)
 {
-    if (quantity == 0 || (stopPrice == 0 && conditionPrice == 0))
+    if (quantity == 0 || (stopPrice == 0 && takeProfitPrice == 0))
 	{
 		return 0;
 	}
@@ -204,13 +204,13 @@ function updateOrders(var operation, var price)
 	var curOrder =  setOrder(operation, 0, quantity, 0, 0 );
 	if (operation == OP_SELL)
 	{
-        setStopOrder(OP_BUY, price + stopLoss, price - takeProfit, quantity)
+        setStopOrder(OP_BUY, price + stopLoss, price - takeProfit, quantity);
 	}
 	else
 	{
-         setStopOrder(OP_SELL, price - stopLoss, price + takeProfit, quantity)
+         setStopOrder(OP_SELL, price - stopLoss, price + takeProfit, quantity);
 	}
-	if (not curShortOrder) 
+	if (not curOrder) 
 	{
 		  signal::output(getLastErrorMessage());
 	}
@@ -263,19 +263,25 @@ function onKeyDown(var key)
   {
      signal::outputMultiple("Current Position :" + getSecBalanceWrapper());
   }
+
   if (key == chr2num("2") and isKeyPressed(KEY_LSHIFT)) 
-  {
-	 updateOrders();		
-  }
-  if (key == chr2num("3") and isKeyPressed(KEY_LSHIFT)) 
   {
 	signal::output("Try to custom delete orders");
 	CancelAllOrderCustom();
   }
-	  if (key == chr2num("4") and isKeyPressed(KEY_LSHIFT)) 
+  if (key == chr2num("3") and isKeyPressed(KEY_LSHIFT)) 
   {
 	signal::outputMultiple(getHour(getCandleTime()));
 	signal::outputMultiple(getMinute(getCandleTime()));
   }
+  if (key == chr2num("4") and isKeyPressed(KEY_LSHIFT)) 
+  {
+	 updateOrders(OP_SELL, open);
+  }
+  if (key == chr2num("5") and isKeyPressed(KEY_LSHIFT)) 
+  {
+	  updateOrders(OP_BUY, open);
+  }
+  
   
 }
