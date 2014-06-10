@@ -285,6 +285,18 @@ function onKeyDown(var key)
   {
 	  updateOrders(OP_BUY, open);
   }
-  
+  //complex test without time compare
+  if (key == chr2num("6") and isKeyPressed(KEY_LSHIFT)) 
+  {
+	  var orders = getActiveOrderIDs();
+	  if(orders.size() == 0 && open < line[0] && getSecBalanceWrapper() == 0)
+	  {
+	    	updateOrders(OP_SELL, open);
+	  }	
+	  if(orders.size() == 0 && open > line[0] && getSecBalanceWrapper() == 0)
+	  {
+			updateOrders(OP_BUY, open);
+	  }		
+  }
   
 }
