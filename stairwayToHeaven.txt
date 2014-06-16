@@ -54,8 +54,26 @@ function CancelAllOrderCustom()
 			i += 1;
 		}
 	}
-	
-	
+}
+
+function HasActiveWatchingOrders()
+{
+	var secInf = getSecInfo();
+	var allOrders = getAllOrderIDs();
+	var i = 0;
+	if (allOrders.size() != 0)
+	{
+		while (i < allOrders.size()) {
+			var orderId = allOrders[i];
+			var order = getOrder(orderId);		
+			if (order["secid"] == secInf["secid"] && (order["status"] == OS_WATCHING || order["status"] == OS_ACTIVE))
+			{			
+				return true;
+			}
+			i += 1;
+		}
+	}
+	return false;
 }
 
 function init()
@@ -95,9 +113,15 @@ function onEnvEvent(var event)
 		var fortsPos = getFORTSPosition(clientId, secInf["secid"]);    
 		signal::output("secInf :" + secInf["secid"]);
 		signal::output("getClient :" + clientId);
-		signal::output("FORST position :" + fortsPos["totalnet"]);
-		
-		fortsPositionSize = fortsPos["totalnet"];
+		if (!fortsPos.haskey("totalnet") )
+		{
+			fortsPositionSize = 0;
+		}
+		else
+		{
+			fortsPositionSize = fortsPos["totalnet"];
+		}
+		signal::output("FORST position :" + fortsPositionSize);
   }
 }
 
@@ -435,7 +459,7 @@ function calc()
 function onNewCandle() 
 {	
 	var orders = getActiveOrderIDs();
-	if(orders.size() == 0 && needUpdate == 1)
+	if(orders.size() == 0 && !HasActiveWatchingOrders() && needUpdate == 1)
 	{		
 		updateOrders(calculateSharesCount());
 		needUpdate = 0;
