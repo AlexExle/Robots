@@ -18,6 +18,8 @@ extern "string" clientId = "client";
 
 extern GoPercent = 4;
 
+extern emaPeriod = 300;
+
 static needUpdate = 0;
 
 static quantityRate;
@@ -52,13 +54,13 @@ function init()
 	quantityRate = 1;
 
 	requestFORTSPositions(clientId);
-	line[0] = MovAvg(ind_ema, 300, pt_close);
+	line[0] = MovAvg(ind_ema, emaPeriod, pt_close);
 
 }
 
 function calc()
 {
-	line[0] = MovAvg(ind_ema, 300, pt_close);
+	line[0] = MovAvg(ind_ema, emaPeriod, pt_close);
 }
 
 function getSecBalanceWrapper()
@@ -241,7 +243,7 @@ function onTrade(var id)
 function onNewCandle() 
 {		
 	var orders = getActiveOrderIDs();
-	//if 12 00 we need to sale
+	//if 12 00 we need to sell
 	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == 00 && orders.size() == 0 && open < line[0] && getSecBalanceWrapper() == 0 )
 	{
 		updateOrders(OP_SELL, open);
@@ -293,6 +295,10 @@ function onKeyDown(var key)
 	  {
 	    	updateOrders(OP_SELL, open);
 	  }	
+  }
+  if (key == chr2num("7") and isKeyPressed(KEY_LSHIFT)) 
+  {
+	  var orders = getActiveOrderIDs();
 	  if(orders.size() == 0 && open > line[0] && getSecBalanceWrapper() == 0)
 	  {
 			updateOrders(OP_BUY, open);
