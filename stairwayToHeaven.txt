@@ -413,6 +413,18 @@ function onOrder(var id)
 	{
 		var price =	order["price"];
 		
+		signal::output("Trying to cancel all old orders...");
+		if (isForts >0)
+		{
+			CancelAllOrderCustom();
+		}
+		else
+		{
+			trade_action::cancelBuyOrders();
+			trade_action::cancelSellOrders();
+			trade_action::cancelAllOrders();
+		}
+		
 		var newShares = calculateSharesCount();
 		signal::output("New position created! New count of shares :" + newShares);
 		//updateOrders(newShares);		
