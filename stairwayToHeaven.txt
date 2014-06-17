@@ -411,9 +411,7 @@ function onOrder(var id)
 	
 	if (order["status"] == OS_MATCHED)
 	{
-		var price =	order["price"];
-		
-		signal::output("Trying to cancel all old orders...");
+	
 		if (isForts >0)
 		{
 			CancelAllOrderCustom();
