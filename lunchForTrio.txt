@@ -27,6 +27,10 @@ static position;
 static fortsPositionSize = 0;
 static freeMoney = 0;
 
+static positionOrder = 0;
+static takeProfitOrder = 0;
+static stopLossOrder = 0;
+
 function CancelAllOrderCustom()
 {
 	var secInf = getSecInfo();
@@ -233,18 +237,18 @@ function updateOrders(var operation, var price)
 	}
 	CancelAllStopOrdersCustom();
 	var quantity = calcQuantity(price);
-	var curOrder =  setOrder(operation, 0, quantity + getSecBalanceWrapper(), 0, 0 );
+	positionOrder =  setOrder(operation, 0, quantity + getSecBalanceWrapper(), 0, 0 );
 	if (operation == OP_SELL)
 	{
-		setOrder(OP_BUY, 0, quantity, COND_BID, price + stopLoss);
-		setOrder(OP_BUY, 0, quantity, COND_ASK,  price - takeProfit);
+		stopLossOrder = setOrder(OP_BUY, 0, quantity, COND_BID, price + stopLoss);
+		takeProfitOrder = setOrder(OP_BUY, 0, quantity, COND_ASK,  price - takeProfit);
 		
         //setStopOrder(OP_BUY, price + stopLoss, price - takeProfit, quantity);
 	}
 	else
 	{
-		 setOrder(OP_SELL, 0, quantity, COND_BID,  price + takeProfit );
-		 setOrder(OP_SELL, 0, quantity, COND_ASK, price - stopLoss );			
+		takeProfitOrder = setOrder(OP_SELL, 0, quantity, COND_BID,  price + takeProfit );
+		stopLossOrder = setOrder(OP_SELL, 0, quantity, COND_ASK, price - stopLoss );			
 			
         //setStopOrder(OP_SELL, price - stopLoss, price + takeProfit, quantity);
 	}
@@ -256,7 +260,7 @@ function updateOrders(var operation, var price)
 	{
 	
 	   signal::output("Update position. Price : " + price);
-	}		
+	}
 }
 
 function onOrder(var id)
@@ -265,7 +269,20 @@ function onOrder(var id)
 	
 	if (order["status"] == OS_MATCHED)
 	{
-		requestFORTSPositions(clientId);			
+		requestFORTSPositions(clientId);	
+		if (id == stopLossOrder || id == takeProfitOrder)
+		{
+			if (isForts >0)
+			{
+				CancelAllOrderCustom();
+			}
+			else
+			{
+				trade_action::cancelBuyOrders();
+				trade_action::cancelSellOrders();
+				trade_action::cancelAllOrders();
+			}
+		}
 	}
 }
 
