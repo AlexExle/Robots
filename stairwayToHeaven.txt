@@ -411,20 +411,9 @@ function onOrder(var id)
 	
 	if (order["status"] == OS_MATCHED)
 	{
-	
-		if (isForts >0)
-		{
-			CancelAllOrderCustom();
-		}
-		else
-		{
-			trade_action::cancelBuyOrders();
-			trade_action::cancelSellOrders();
-			trade_action::cancelAllOrders();
-		}
-		
 		var newShares = calculateSharesCount();
 		signal::output("New position created! New count of shares :" + newShares);
+		updateOrders(newShares);
 		//updateOrders(newShares);		
 	}
 }
@@ -450,8 +439,11 @@ function calc()
 	   line[0] = highPoint;
 	   currentPoint = highPoint;
 	   lowPoint =  highPoint - step;
-	   highPoint = highPoint + step;		
-	   needUpdate = 1;		     		
+	   highPoint = highPoint + step;	
+	   if (getSecBalanceWrapper() > 0 && calculateSharesCount() == 1)
+	   {
+			updateOrders(calculateSharesCount());  	     		
+	   }
 	}
 	else
 	{ if (low <= lowPoint) 
@@ -460,26 +452,14 @@ function calc()
 		 currentPoint = lowPoint;
 		 highPoint = lowPoint + step;		   
 		 lowPoint = lowPoint - step;
-		 needUpdate = 1;		     		
+		 if (getSecBalanceWrapper() < 0 && calculateSharesCount() == 1)
+		 {
+			updateOrders(calculateSharesCount());     		
+		 }	     		
 	  }
 	}
 }
 
-
-function onNewCandle() 
-{	
-	var orders = getActiveOrderIDs();
-	if(orders.size() == 0 &&  needUpdate == 1)
-	{		
-		updateOrders(calculateSharesCount());
-		needUpdate = 0;
-	}				
-	if (isForts > 0)
-	{
-		signal::output("Current position :" + getSecBalanceWrapper());
-		signal::output("Current shares :" + calculateSharesCount());
-	}
-}
 
 // BUTTONS FOR TESTING //
 
