@@ -469,7 +469,7 @@ function calc()
 function onNewCandle() 
 {	
 	var orders = getActiveOrderIDs();
-	if(orders.size() == 0 && !HasActiveWatchingOrders() && needUpdate == 1)
+	if(orders.size() == 0 &&  needUpdate == 1)
 	{		
 		updateOrders(calculateSharesCount());
 		needUpdate = 0;
