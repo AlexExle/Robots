@@ -460,6 +460,14 @@ function calc()
 	}
 }
 
+function onNewCandle() 
+{	
+	if( needUpdate == 1)
+	{		
+		updateOrders(calculateSharesCount());
+		needUpdate = 0;
+	}				
+}
 
 // BUTTONS FOR TESTING //
 
