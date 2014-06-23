@@ -163,7 +163,7 @@ function calcQuantity(var shares)
 //??????? ??? ????????? ?????? (?????? ???????!)
 function setOrder(var orderType, var price, var quantity, var condition, var conditionPrice)
 {
-	if (quantity == 0 || price == 0 || conditionPrice == 0)
+	if (quantity == 0 || price == 0)
 	{
 		return 0;
 	}
@@ -183,8 +183,11 @@ function setOrder(var orderType, var price, var quantity, var condition, var con
 	order["client"] = clientId;
 	order["price"] = price;
 	order["validbefore"] = TILL_CANCELED;
-	order["condition"] = condition;
-	order["condvalue"] = conditionPrice;
+	if (condition != 0 && conditionPrice != 0)
+	{
+	    order["condition"] = condition;
+	    order["condvalue"] = conditionPrice;
+	}
 
 	// ??????????? ?????? ?? ?????
 	return trade_action::transactMultiple(order);
@@ -261,7 +264,7 @@ function updateOrders(var currentShare)
 		
 		activationPrice = line[0] - step ;
 		enterPrice = line[0] - step - (getSecPriceStep()* priceStepCount);
-		curShortOrder = setOrder(OP_SELL, enterPrice, calcQuantity(1), COND_ASK, activationPrice );
+		curShortOrder = setOrder(OP_SELL, enterPrice, calcQuantity(1), COND_ASK_OR_LAST, activationPrice );
 		if (not curShortOrder) 
 		{
 			  signal::output(getLastErrorMessage());
@@ -273,7 +276,7 @@ function updateOrders(var currentShare)
 		
 		activationPrice = line[0] + step ;
 		enterPrice = line[0] + step + (getSecPriceStep()* priceStepCount);
-		curLongOrder = setOrder(OP_BUY, enterPrice, calcQuantity(1), COND_BID, activationPrice);
+		curLongOrder = setOrder(OP_BUY, enterPrice, calcQuantity(1), COND_BID_OR_LAST, activationPrice);
 		if (not curLongOrder) 
 		{
 		  signal::output(getLastErrorMessage());
@@ -290,7 +293,7 @@ function updateOrders(var currentShare)
 		{
 			activationPrice = line[0] - step ;
 			enterPrice = line[0] - step - (getSecPriceStep()* priceStepCount);
-			curShortOrder = setOrder(OP_SELL, enterPrice, calcQuantity(3), COND_ASK, activationPrice );
+			curShortOrder = setOrder(OP_SELL, enterPrice, calcQuantity(3), COND_ASK_OR_LAST, activationPrice );
 			if (not curShortOrder) 
 			{
 				  signal::output(getLastErrorMessage());
@@ -304,7 +307,7 @@ function updateOrders(var currentShare)
 		{			
 			activationPrice = line[0] + step ;
 			enterPrice = line[0] + step + (getSecPriceStep()* priceStepCount);
-			curLongOrder = setOrder(OP_BUY, enterPrice, calcQuantity(3), COND_BID, activationPrice);
+			curLongOrder = setOrder(OP_BUY, enterPrice, calcQuantity(3), COND_BID_OR_LAST, activationPrice);
 			if (not curLongOrder) 
 			{
 			  signal::output(getLastErrorMessage());
@@ -322,7 +325,7 @@ function updateOrders(var currentShare)
 		{
 			activationPrice = line[0] - step ;
 			enterPrice =  line[0] - step -  (getSecPriceStep()* priceStepCount);
-			curShortOrder = setOrder(OP_SELL, enterPrice, calcQuantity(3), COND_ASK, activationPrice );
+			curShortOrder = setOrder(OP_SELL, enterPrice, calcQuantity(3), COND_ASK_OR_LAST, activationPrice );
 			if (not curShortOrder) 
 			{
 				  signal::output(getLastErrorMessage());
@@ -333,8 +336,8 @@ function updateOrders(var currentShare)
 			}
 			
 			activationPrice = line[0] + step;
-			enterPrice  = line[0] + step + (getSecPriceStep()* priceStepCount);
-			curLongOrder = setOrder(OP_SELL, enterPrice, calcQuantity(1), COND_BID, activationPrice);
+			enterPrice  = line[0] + step - (getSecPriceStep()* priceStepCount);
+			curLongOrder = setOrder(OP_SELL, enterPrice, calcQuantity(1), COND_BID_OR_LAST, activationPrice);
 			if (not curLongOrder) 
 			{
 			  signal::output(getLastErrorMessage());
@@ -348,8 +351,8 @@ function updateOrders(var currentShare)
 		{
 		
 			activationPrice = line[0] - step ;
-			enterPrice = line[0] - step - (getSecPriceStep()* priceStepCount);
-			curShortOrder = setOrder(OP_BUY, enterPrice, calcQuantity(1), COND_ASK, activationPrice );
+			enterPrice = line[0] - step + (getSecPriceStep()* priceStepCount);
+			curShortOrder = setOrder(OP_BUY, enterPrice, calcQuantity(1), COND_ASK_OR_LAST, activationPrice );
 			if (not curShortOrder) 
 			{
 				  signal::output(getLastErrorMessage());
@@ -361,7 +364,7 @@ function updateOrders(var currentShare)
 			
 			activationPrice = line[0] + step;
 			enterPrice = line[0] + step + (getSecPriceStep()* priceStepCount);
-			curLongOrder = setOrder(OP_BUY, enterPrice, calcQuantity(3), COND_BID, activationPrice);
+			curLongOrder = setOrder(OP_BUY, enterPrice, calcQuantity(3), COND_BID_OR_LAST, activationPrice);
 			if (not curLongOrder) 
 			{
 			  signal::output(getLastErrorMessage());
@@ -460,6 +463,14 @@ function calc()
 	}
 }
 
+function onNewCandle() 
+{	
+	if( needUpdate == 1)
+	{		
+		updateOrders(calculateSharesCount());
+		needUpdate = 0;
+	}				
+}
 
 // BUTTONS FOR TESTING //
 
