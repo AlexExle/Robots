@@ -20,6 +20,8 @@ extern goPrice = 1200;
 
 extern emaPeriod = 300;
 
+extern minutes = 0;
+
 static needUpdate = 0;
 
 static quantityRate;
@@ -269,9 +271,13 @@ function onOrder(var id)
 	
 	if (order["status"] == OS_MATCHED)
 	{
+		signal::output("order was matched, id:" + id);
+		signal::output("stopLossOrder id:" + stopLossOrder);
+		signal::output("takeProfitOrder id:" + takeProfitOrder);
 		requestFORTSPositions(clientId);	
 		if (id == stopLossOrder || id == takeProfitOrder)
 		{
+			signal::output("Cancel other orders");
 			if (isForts >0)
 			{
 				CancelAllOrderCustom();
@@ -308,12 +314,12 @@ function onNewCandle()
 	signal::output("getSecBalanceWrapper()  :" + getSecBalanceWrapper() );
 	
 	//if 12 00 we need to sell
-	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == 00 && open < line[0][-1] && getSecBalanceWrapper() >= 0)
+	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == minutes && open < line[0][-1] && getSecBalanceWrapper() >= 0)
 	{
 		updateOrders(OP_SELL, open);
 	}
 	//if 13 00 we need to buy
-	if(getHour(getCandleTime()) == 13 && getMinute(getCandleTime()) == 00 && open > line[0][-1] && getSecBalanceWrapper() <= 0)
+	if(getHour(getCandleTime()) == 13 && getMinute(getCandleTime()) == minutes && open > line[0][-1] && getSecBalanceWrapper() <= 0)
 	{
 		updateOrders(OP_BUY, open);
 	}		
