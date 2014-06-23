@@ -275,7 +275,7 @@ function onOrder(var id)
 		signal::output("stopLossOrder id:" + stopLossOrder);
 		signal::output("takeProfitOrder id:" + takeProfitOrder);
 		requestFORTSPositions(clientId);	
-		if (id == stopLossOrder || id == takeProfitOrder)
+		if (order.haskey("condvalue") && as_number(order["condvalue"]) > 0)		
 		{
 			signal::output("Cancel other orders");
 			if (isForts >0)
