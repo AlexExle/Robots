@@ -252,7 +252,7 @@ function updateOrders(var operation, var price)
 			
         //setStopOrder(OP_SELL, price - stopLoss, price + takeProfit, quantity);
 	}
-	if (not curOrder) 
+	if (not positionOrder) 
 	{
 		  signal::output(getLastErrorMessage());
 	}
