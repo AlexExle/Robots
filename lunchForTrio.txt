@@ -86,6 +86,11 @@ function init()
 
 }
 
+function onStartRobot()
+{
+	requestFORTSPositions(clientId);
+}
+
 function calc()
 {
 	line[0] = MovAvg(ind_ema, emaPeriod, pt_close);
