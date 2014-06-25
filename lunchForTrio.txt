@@ -247,15 +247,15 @@ function updateOrders(var operation, var price)
 	positionOrder =  setOrder(operation, 0, quantity + getSecBalanceWrapper(), 0, 0 );
 	if (operation == OP_SELL)
 	{
-		stopLossOrder = setOrder(OP_BUY, 0, quantity, COND_BID, price + stopLoss);
-		takeProfitOrder = setOrder(OP_BUY, 0, quantity, COND_ASK,  price - takeProfit);
+		stopLossOrder = setOrder(OP_BUY, 0, quantity, COND_BID_OR_LAST, price + stopLoss);
+		takeProfitOrder = setOrder(OP_BUY, 0, quantity, COND_ASK_OR_LAST,  price - takeProfit);
 		
         //setStopOrder(OP_BUY, price + stopLoss, price - takeProfit, quantity);
 	}
 	else
 	{
-		takeProfitOrder = setOrder(OP_SELL, 0, quantity, COND_BID,  price + takeProfit );
-		stopLossOrder = setOrder(OP_SELL, 0, quantity, COND_ASK, price - stopLoss );			
+		takeProfitOrder = setOrder(OP_SELL, 0, quantity, COND_BID_OR_LAST,  price + takeProfit );
+		stopLossOrder = setOrder(OP_SELL, 0, quantity, COND_ASK_OR_LAST, price - stopLoss );			
 			
         //setStopOrder(OP_SELL, price - stopLoss, price + takeProfit, quantity);
 	}
