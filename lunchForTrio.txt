@@ -62,9 +62,6 @@ function CancelAllStopOrdersCustom()
 		while (i < allOrders.size()) {
 			var orderId = allOrders[i];
 			var order = getStopOrder(orderId);		
-			signal::output("orderId :" + orderId);
-			signal::output("order status:" + order["status"]);
-			signal::output("order secid :" + order["secid"]);
 			if (order["secid"] == secInf["secid"] && (order["status"] == SS_WATCHING))
 			{			
 				trade_action::cancelStopOrder(order["secid"]);
@@ -129,8 +126,7 @@ function onEnvEvent(var event)
   if (event == "CLIENT_HOLDINGS") {
 		var secInf = getSecInfo();
 		var fortsPos = getFORTSPosition(clientId, secInf["secid"]);    
-		signal::output("secInf :" + secInf["secid"]);
-		signal::output("getClient :" + clientId);
+		
 		
 		if (!fortsPos.haskey("totalnet") )
 		{
@@ -140,6 +136,9 @@ function onEnvEvent(var event)
 		{
 			fortsPositionSize = fortsPos["totalnet"];
 		}
+		
+		signal::outputMultiple("new Forst Position :" + fortsPositionSize);
+
 		
 		var frotsMoney = getFORTSMoney(clientId);
 		freeMoney  = frotsMoney["mcurrent"];
@@ -244,7 +243,7 @@ function updateOrders(var operation, var price)
 	}
 	CancelAllStopOrdersCustom();
 	var quantity = calcQuantity(price);
-	positionOrder =  setOrder(operation, 0, quantity + getSecBalanceWrapper(), 0, 0 );
+	positionOrder =  setOrder(operation, 0, quantity + abs(getSecBalanceWrapper()), 0, 0 );
 	if (operation == OP_SELL)
 	{
 		stopLossOrder = setOrder(OP_BUY, 0, quantity, COND_BID_OR_LAST, price + stopLoss);
@@ -276,9 +275,6 @@ function onOrder(var id)
 	
 	if (order["status"] == OS_MATCHED)
 	{
-		signal::output("order was matched, id:" + id);
-		signal::output("stopLossOrder id:" + stopLossOrder);
-		signal::output("takeProfitOrder id:" + takeProfitOrder);
 		requestFORTSPositions(clientId);	
 		if (order.haskey("condvalue") && as_number(order["condvalue"]) > 0)		
 		{
@@ -304,6 +300,7 @@ function onTrade(var id)
 	if (isForts > 0 )
 	{
 		fortsPositionSize = trade["currentpos"];
+		signal::outputMultiple("new Forst Position :" + fortsPositionSize);
 	}
 }
 
