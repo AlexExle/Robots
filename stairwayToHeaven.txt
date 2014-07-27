@@ -37,6 +37,7 @@ static quantityRate;
 static position;
 static fortsPositionSize = 0;
 
+
 function CancelAllOrderCustom()
 {
 	var secInf = getSecInfo();
@@ -91,7 +92,6 @@ function init()
 	line[0] = currentPoint;
 	lowPoint = currentPoint - step;
 	highPoint = currentPoint + step;
-	needUpdate = 1;
 }
 
 function getSecBalanceWrapper()
@@ -208,36 +208,6 @@ function setStopOrder(var orderType, var price)
 
 	// ??????????? ?????? ?? ?????
 	return trade_action::transactMultiple(stop);
-}
-
-function getMin(var period)
-{	
-	var i = period * -1;
-	var result = low[i];
-	while(i < 0)
-	{
-		if(result > low[i])
-		{
-			result = low[i];
-		}
-		i = i + 1;
-	}
-	return result;
-}
-
-function getMax(var period)
-{
-	var i = period * -1;
-	var result = high[i];
-	while(i < 0)
-	{
-		if(result < high[i])
-		{
-			result = high[i];
-		}
-		i= i + 1;
-	}
-	return result;
 }
 
 //????????? ??????
@@ -462,15 +432,6 @@ function calc()
 		 }	     		
 	  }
 	}
-}
-
-function onNewCandle() 
-{	
-	if( needUpdate == 1)
-	{		
-		updateOrders(calculateSharesCount(), line[0]);
-		needUpdate = 0;
-	}				
 }
 
 // BUTTONS FOR TESTING //
