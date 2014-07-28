@@ -35,6 +35,13 @@ static stopLossOrder = 0;
 
 static secName = "";
 
+static file;
+ 
+function writeToLogFile(var message)
+{
+	file.writeLn(message);
+}
+
 function GetSecName()
 {
 	var secInf = getSecInfo();
@@ -92,6 +99,8 @@ function CancelAllStopOrdersCustom()
 
 function init()
 {
+	file = new_object("file");
+	file.waopen("atf_robot_log.txt");
 	setClient(clientId);
 	position = 0;
 	quantityRate = 1;
