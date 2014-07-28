@@ -2,13 +2,13 @@
 //stairway
 #line 0 solid #911e42 
 
-//??? ???????
+
 extern step = 50;
-//????????? ????? 
+
 extern offset = 0;
-//?????? ????
+
 extern quantityOfShare = 22;
-//?????????? ????? ???? ?? ??????? ????? ?????????? ???? ????????? ?????? ?? ???? ? ???????
+
 extern priceStepCount = 5;
 
 extern lotSize = 0;
@@ -24,19 +24,44 @@ static lowPoint;
 static needUpdate = 0;
 
 static highPoint;
-//id ???????? ?????
+
 static curStopOrder;
-//id ??????? ?? ????
+
 static curShortOrder;
-//id ??????? ?? ????
+
 static curLongOrder;
-// ???? ?????
+
 static enterPrice;
-// ??????????? ??????????? ??????
+
 static quantityRate;
 static position;
 static fortsPositionSize = 0;
+ 
+static secName = "";
+static file;
+ 
+function writeToLogFile(var message)
+{
+	file.writeLn(message);
+}
 
+function GetSecName()
+{
+	var secInf = getSecInfo();
+	return secInf["secname"];
+}
+
+function GenerateTimeStamp()
+{
+	return getFormattedDateTime(getServerTime());
+}
+
+function WriteLogMessage(var message)
+{	
+	var logMsg = GenerateTimeStamp() + " - " + secName + " : " + message;
+	signal::outputMultiple(logMsg);
+	writeToLogFile(logMsg);
+}
 
 function CancelAllOrderCustom()
 {
@@ -78,7 +103,10 @@ function HasActiveWatchingOrders()
 }
 
 function init()
-{
+{	
+	file = new_object("file");
+	file.waopen("atf_robot_log.txt");
+	secName = GetSecName();
 	setClient(clientId);
 	position = 0;
 	quantityRate = 1;
@@ -86,7 +114,7 @@ function init()
 		lackHistory();
 	}
 	requestFORTSPositions(clientId);
- 
+
 	currentPoint = open;
 	currentPoint = currentPoint - fmod(currentPoint, step) + offset;
 	line[0] = currentPoint;
@@ -111,8 +139,8 @@ function onEnvEvent(var event)
   if (event == "CLIENT_HOLDINGS") {
 		var secInf = getSecInfo();
 		var fortsPos = getFORTSPosition(clientId, secInf["secid"]);    
-		signal::output("secInf :" + secInf["secid"]);
-		signal::output("getClient :" + clientId);
+        WriteLogMessage("secInf :" + secInf["secid"]);
+        WriteLogMessage("getClient :" + clientId);
 		if (!fortsPos.haskey("totalnet") )
 		{
 			fortsPositionSize = 0;
@@ -121,7 +149,7 @@ function onEnvEvent(var event)
 		{
 			fortsPositionSize = fortsPos["totalnet"];
 		}
-		signal::output("FORST position :" + fortsPositionSize);
+        WriteLogMessage("FORST position :" + fortsPositionSize);
   }
 }
 
@@ -154,13 +182,11 @@ function calculateSharesCount()
 	return result;
 }
 
-//??????? ??????? ?????
 function calcQuantity(var shares)
 {		
 	return (quantityOfShare * shares);
 }
 
-//??????? ??? ????????? ?????? (?????? ???????!)
 function setOrder(var orderType, var price, var quantity, var condition, var conditionPrice)
 {
 	if (quantity == 0 || price == 0)
@@ -169,7 +195,6 @@ function setOrder(var orderType, var price, var quantity, var condition, var con
 	}
 	var order = new_object("hash");
 
-	// ?????????? ????????? ????
 	order["operation"] = orderType;
 	order["quantity"] = quantity;
 	if (isForts > 0)
@@ -189,16 +214,13 @@ function setOrder(var orderType, var price, var quantity, var condition, var con
 	    order["condvalue"] = conditionPrice;
 	}
 
-	// ??????????? ?????? ?? ?????
 	return trade_action::transactMultiple(order);
 }
 
-//??????? ??? ????????? ???? ??????
 function setStopOrder(var orderType, var price)
 {
 	var stop = new_object("hash");
 
-	// ?????? ?? ???????
 	stop["operation"] = orderType;
 
 	// ????? Stop Loss
@@ -206,15 +228,13 @@ function setStopOrder(var orderType, var price)
 	stop["sl_quantity"] = "100%" ;
 	stop["validbefore"] = TILL_CANCELED;
 
-	// ??????????? ?????? ?? ?????
 	return trade_action::transactMultiple(stop);
 }
 
-//????????? ??????
 function updateOrders(var currentShare, var price)
 {
-	//?????? ? ?????	
-	 signal::output("Trying to cancel all old orders...");
+
+    WriteLogMessage("Trying to cancel all old orders...");
 	if (isForts >0)
 	{
 		CancelAllOrderCustom();
@@ -228,7 +248,7 @@ function updateOrders(var currentShare, var price)
 	
 	var activationPrice = 0;
 	var enterPrice = 0;
-	//?????? ?? ??? ???????
+
 	if (currentShare == 0)
 	{	
 		
@@ -237,11 +257,11 @@ function updateOrders(var currentShare, var price)
 		curShortOrder = setOrder(OP_SELL, enterPrice, calcQuantity(1), COND_ASK_OR_LAST, activationPrice );
 		if (not curShortOrder) 
 		{
-			  signal::output(getLastErrorMessage());
+            WriteLogMessage(getLastErrorMessage());
 		}
 		else
 		{
-		   signal::output("Created new order , price: " + enterPrice + "| Activation price: " + activationPrice);
+            WriteLogMessage("Created new order , price: " + enterPrice + "| Activation price: " + activationPrice);
 		}
 		
 		activationPrice = price + step ;
@@ -249,16 +269,15 @@ function updateOrders(var currentShare, var price)
 		curLongOrder = setOrder(OP_BUY, enterPrice, calcQuantity(1), COND_BID_OR_LAST, activationPrice);
 		if (not curLongOrder) 
 		{
-		  signal::output(getLastErrorMessage());
+            WriteLogMessage(getLastErrorMessage());
 		}
 		else
 		{
-			signal::output("Created new order , price: " + enterPrice + "| Activation price: " + activationPrice );
+            WriteLogMessage("Created new order , price: " + enterPrice + "| Activation price: " + activationPrice );
 		}
 	}
 	if (currentShare == 1)
-	{	
-		//? ?????
+	{
 		if (getSecBalanceWrapper() > 0)
 		{
 			activationPrice = price - step ;
@@ -266,31 +285,30 @@ function updateOrders(var currentShare, var price)
 			curShortOrder = setOrder(OP_SELL, enterPrice, calcQuantity(3), COND_ASK_OR_LAST, activationPrice );
 			if (not curShortOrder) 
 			{
-				  signal::output(getLastErrorMessage());
+                WriteLogMessage(getLastErrorMessage());
 			}
 			else
 			{
-			   signal::output("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice);
+                WriteLogMessage("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice);
 			}
 		}
-		else // ? ?????
+		else
 		{			
 			activationPrice = price + step ;
 			enterPrice = price + step + (getSecPriceStep()* priceStepCount);
 			curLongOrder = setOrder(OP_BUY, enterPrice, calcQuantity(3), COND_BID_OR_LAST, activationPrice);
 			if (not curLongOrder) 
 			{
-			  signal::output(getLastErrorMessage());
+                WriteLogMessage(getLastErrorMessage());
 			}
 			else
 			{
-				signal::output("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice );
+                WriteLogMessage("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice );
 			}
 		}
 	}
 	if (currentShare == 2)
 	{
-		//? ?????
 		if (getSecBalanceWrapper() > 0)
 		{
 			activationPrice = price - step ;
@@ -298,11 +316,11 @@ function updateOrders(var currentShare, var price)
 			curShortOrder = setOrder(OP_SELL, enterPrice, calcQuantity(3), COND_ASK_OR_LAST, activationPrice );
 			if (not curShortOrder) 
 			{
-				  signal::output(getLastErrorMessage());
+                WriteLogMessage(getLastErrorMessage());
 			}
 			else
 			{
-			   signal::output("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice);
+                WriteLogMessage("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice);
 			}
 			
 			activationPrice = price + step;
@@ -310,14 +328,14 @@ function updateOrders(var currentShare, var price)
 			curLongOrder = setOrder(OP_SELL, enterPrice, calcQuantity(1), COND_BID_OR_LAST, activationPrice);
 			if (not curLongOrder) 
 			{
-			  signal::output(getLastErrorMessage());
+                WriteLogMessage(getLastErrorMessage());
 			}
 			else
 			{
-				signal::output("Created new order for take profit of one share, price: " + enterPrice + "| Activation price: " + activationPrice );
+                WriteLogMessage("Created new order for take profit of one share, price: " + enterPrice + "| Activation price: " + activationPrice );
 			}		
 		}
-		else // ? ?????
+		else
 		{
 		
 			activationPrice = price - step ;
@@ -325,11 +343,11 @@ function updateOrders(var currentShare, var price)
 			curShortOrder = setOrder(OP_BUY, enterPrice, calcQuantity(1), COND_ASK_OR_LAST, activationPrice );
 			if (not curShortOrder) 
 			{
-				  signal::output(getLastErrorMessage());
+                WriteLogMessage(getLastErrorMessage());
 			}
 			else
 			{
-			   signal::output("Created new order for take profit of one share, price: " + enterPrice + "| Activation price: " + activationPrice);
+                WriteLogMessage("Created new order for take profit of one share, price: " + enterPrice + "| Activation price: " + activationPrice);
 			}
 			
 			activationPrice = price + step;
@@ -337,23 +355,22 @@ function updateOrders(var currentShare, var price)
 			curLongOrder = setOrder(OP_BUY, enterPrice, calcQuantity(3), COND_BID_OR_LAST, activationPrice);
 			if (not curLongOrder) 
 			{
-			  signal::output(getLastErrorMessage());
+                WriteLogMessage(getLastErrorMessage());
 			}
 			else
 			{
-				signal::output("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice );
+                WriteLogMessage("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice );
 			}
 		}
 	}
 	
 }
 
-//????????? ?????
 function updateStopOrder()
 {
 	trade_action::cancelAllOrders();
 	trade_action::cancelStopOrder(curStopOrder);
-	//????? > 0? ????? ? ?????, ?????? ????-?????? ?? ????
+
 	if(getSecBalance()> 0)
 	{
 		curStopOrder = setStopOrder(OP_SELL, line[3]);
@@ -368,16 +385,14 @@ function updateStopOrder()
 	
 	if (not curStopOrder) 
 	{
-		  signal::output(getLastErrorMessage());
+        WriteLogMessage(getLastErrorMessage());
 	}
 	else
 	{
-		signal::output("???????? ????.");
+        WriteLogMessage("Stop Order entered");
 	}
 }
 
-
-//?? ?????? ?? ?????? ???????? ???????? ?? ?????, ???? ??, ?? ?????? ?? ??? ????? ????? ??????? ?????
 function onOrder(var id)
 {
 	var order = getOrder(id);
@@ -385,8 +400,8 @@ function onOrder(var id)
 	if (order["status"] == OS_MATCHED)
 	{
 		var newShares = calculateSharesCount();
-		signal::output("New position created! New count of shares :" + newShares);
-		signal::output("Updating orders for new level :" + order["condvalue"]);
+        WriteLogMessage("New position created! New count of shares :" + newShares);
+        WriteLogMessage("Updating orders for new level :" + order["condvalue"]);
 		updateOrders(newShares, as_number(order["condvalue"]));
 		//updateOrders(newShares);		
 	}
@@ -408,7 +423,7 @@ function calc()
 	{
 		line[0] = currentPoint;
 	}
-	if (high >= highPoint)
+	if (close >= highPoint)
 	{
 	   line[0] = highPoint;
 	   currentPoint = highPoint;
@@ -420,7 +435,7 @@ function calc()
 	   }
 	}
 	else
-	{ if (low <= lowPoint) 
+	{ if (close <= lowPoint) 
 	  {
 		 line[0] = lowPoint;
 		 currentPoint = lowPoint;
@@ -428,7 +443,7 @@ function calc()
 		 lowPoint = lowPoint - step;
 		 if (getSecBalanceWrapper() < 0 && calculateSharesCount() == 1)
 		 {
-			updateOrders(calculateSharesCount(), currentPoint);     		
+			updateOrders(calculateSharesCount(), currentPoint);
 		 }	     		
 	  }
 	}
@@ -441,25 +456,25 @@ function onKeyDown(var key)
 {
   if (key == chr2num("1") and isKeyPressed(KEY_LSHIFT)) 
   {
-     signal::outputMultiple("Current Position :" + getSecBalanceWrapper());
+      WriteLogMessage("Current Position :" + getSecBalanceWrapper());
   }
   if (key == chr2num("2") and isKeyPressed(KEY_LSHIFT)) 
   {
 	var newShares = calculateSharesCount();
-	signal::output("Updating orders. Count of current shares :" + newShares);
+      WriteLogMessage("Updating orders. Count of current shares :" + newShares);
 	updateOrders(newShares, line[0]);		
   }
-  if (key == chr2num("3") and isKeyPressed(KEY_LSHIFT)) 
+  if (key == chr2num("3") and isKeyPressed(KEY_LSHIFT))
   {
-  signal::output("Try to delete orders");
-	trade_action::cancelBuyOrders();
-	trade_action::cancelSellOrders();
-	trade_action::cancelAllOrders();	
+      WriteLogMessage("Try to delete orders");
+	  trade_action::cancelBuyOrders();
+	  trade_action::cancelSellOrders();
+	  trade_action::cancelAllOrders();
   }
   if (key == chr2num("4") and isKeyPressed(KEY_LSHIFT)) 
   {
-	signal::output("Try to custom delete orders");
-	CancelAllOrderCustom();
+      WriteLogMessage("Try to custom delete orders");
+	  CancelAllOrderCustom();
   }
   
 }
