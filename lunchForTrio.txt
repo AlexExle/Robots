@@ -33,6 +33,24 @@ static positionOrder = 0;
 static takeProfitOrder = 0;
 static stopLossOrder = 0;
 
+static secName = "";
+
+function GetSecName()
+{
+	var secInf = getSecInfo();
+	return secInf["secname"];
+}
+
+function GenerateTimeStamp()
+{
+	return getFormattedDateTime(getServerTime());
+}
+
+function WriteLogMessage(var message)
+{
+	signal::outputMultiple(GenerateTimeStamp() + " - " + secName + " : " + message);
+}
+
 function CancelAllOrderCustom()
 {
 	var secInf = getSecInfo();
@@ -77,8 +95,7 @@ function init()
 	setClient(clientId);
 	position = 0;
 	quantityRate = 1;
-
-	requestFORTSPositions(clientId);
+	secName = GetSecName();
 	line[0] = MovAvg(ind_ema, emaPeriod, pt_close);
 
 }
@@ -137,7 +154,7 @@ function onEnvEvent(var event)
 			fortsPositionSize = fortsPos["totalnet"];
 		}
 		
-		signal::outputMultiple("new Forst Position :" + fortsPositionSize);
+		WriteLogMessage("new Forst Position from Holdings:" + fortsPositionSize);
 
 		
 		var frotsMoney = getFORTSMoney(clientId);
@@ -162,19 +179,16 @@ function getSecLotSize()
 	}
 }
 
-//??????? ??????? ?????
 function calcQuantity(var price)
 {
-	signal::output("Calculated quantity for order: " + floor((freeMoney * (percentOfQuantuty/100))/(getSecLotSize() * (goPrice))));
+	WriteLogMessage("Calculated quantity for order: " + floor((freeMoney * (percentOfQuantuty/100))/(getSecLotSize() * (goPrice))));
 	return floor((freeMoney * (percentOfQuantuty/100))/(getSecLotSize() * (goPrice)));
 }
 
-//??????? ??? ????????? ?????? (?????? ???????!)
 function setOrder(var orderType, var price, var quantity, var condition, var conditionPrice)
 {
 	var order = new_object("hash");
 
-	// ?????????? ????????? ????
 	order["operation"] = orderType;
 	order["quantity"] = quantity;
 	if (isForts > 0)
@@ -197,11 +211,9 @@ function setOrder(var orderType, var price, var quantity, var condition, var con
 		order["condvalue"] = conditionPrice;
 	}
 
-	// ??????????? ?????? ?? ?????
 	return trade_action::transactMultiple(order);
 }
 
-//??????? ??? ????????? ???? ??????
 function setStopOrder(var orderType, var stopPrice, var takeProfitPrice, var quantity)
 {
     if (quantity == 0 || (stopPrice == 0 && takeProfitPrice == 0))
@@ -227,7 +239,6 @@ function setStopOrder(var orderType, var stopPrice, var takeProfitPrice, var qua
 	return trade_action::transactMultiple(stop);
 }
 
-//????????? ??????
 function updateOrders(var operation, var price)
 {
 
@@ -260,12 +271,12 @@ function updateOrders(var operation, var price)
 	}
 	if (not positionOrder) 
 	{
-		  signal::output(getLastErrorMessage());
+		 WriteLogMessage(getLastErrorMessage());
 	}
 	else
 	{
 	
-	   signal::output("Update position. Price : " + price);
+	   WriteLogMessage("Update position. Price : " + price);
 	}
 }
 
@@ -278,7 +289,7 @@ function onOrder(var id)
 		requestFORTSPositions(clientId);	
 		if (order.haskey("condvalue") && as_number(order["condvalue"]) > 0)		
 		{
-			signal::output("Cancel other orders");
+			WriteLogMessage("Cancel other orders");
 			if (isForts >0)
 			{
 				CancelAllOrderCustom();
@@ -300,29 +311,24 @@ function onTrade(var id)
 	if (isForts > 0 )
 	{
 		fortsPositionSize = trade["currentpos"];
-		signal::outputMultiple("new Forst Position :" + fortsPositionSize);
+		WriteLogMessage("New Forst Position from CurrentPos :" + fortsPositionSize);
 	}
 }
 
 function onNewCandle() 
 {		
 	var orders = getActiveOrderIDs();
-	
-	signal::output("getHour(getCandleTime()) :" + getHour(getCandleTime()));
-	signal::output("getMinute(getCandleTime())  :" + getMinute(getCandleTime()));
-	signal::output("orders.size() :" + orders.size());
-	signal::output("open :" + open);
-	signal::output("line[0][-1] :" + line[0][-1]);
-	signal::output("getSecBalanceWrapper()  :" + getSecBalanceWrapper() );
-	
+
 	//if 12 00 we need to sell
 	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == minutes && open < line[0][-1] && getSecBalanceWrapper() >= 0)
-	{
-		updateOrders(OP_SELL, open);
+	{			
+		WriteLogMessage("Balance before SELL Enter  :" + getSecBalanceWrapper() );
+		updateOrders(OP_SELL, open);			
 	}
 	//if 13 00 we need to buy
 	if(getHour(getCandleTime()) == 13 && getMinute(getCandleTime()) == minutes && open > line[0][-1] && getSecBalanceWrapper() <= 0)
 	{
+		WriteLogMessage("Balance before BUY Enter  :" + getSecBalanceWrapper() );
 		updateOrders(OP_BUY, open);
 	}		
 }
@@ -335,19 +341,19 @@ function onKeyDown(var key)
 // test current position function
   if (key == chr2num("1") and isKeyPressed(KEY_LSHIFT)) 
   {
-     signal::outputMultiple("Current Position :" + getSecBalanceWrapper());
+    WriteLogMessage("Current Position :" + getSecBalanceWrapper());
   }
 //test cancel all orders
   if (key == chr2num("2") and isKeyPressed(KEY_LSHIFT)) 
   {
-	signal::output("Try to custom delete orders");
+	WriteLogMessage("Try to custom delete orders");
 	CancelAllOrderCustom();
   }
   // test time determination
   if (key == chr2num("3") and isKeyPressed(KEY_LSHIFT)) 
   {
-	signal::outputMultiple(getHour(getCandleTime()));
-	signal::outputMultiple(getMinute(getCandleTime()));
+	WriteLogMessage(getHour(getCandleTime()));
+	WriteLogMessage(getMinute(getCandleTime()));
   }
   // test of creating order for sale with stop/take profit
   if (key == chr2num("4") and isKeyPressed(KEY_LSHIFT)) 
