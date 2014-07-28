@@ -419,11 +419,23 @@ function onTrade(var id)
 
 function calc()
 {	
+	var lowCondition ;
+	var highCondition;
+	if(isHistoryCalculated())
+	{
+		lowCondition = close;
+		highCondition = close;
+	}
+	else
+	{
+		lowCondition = low;
+		highCondition = high;
+	}
 	if(line[0] == 0)
 	{
 		line[0] = currentPoint;
 	}
-	if (close >= highPoint)
+	if (highCondition >= highPoint)
 	{
 	   line[0] = highPoint;
 	   currentPoint = highPoint;
@@ -435,7 +447,7 @@ function calc()
 	   }
 	}
 	else
-	{ if (close <= lowPoint) 
+	{ if (lowCondition <= lowPoint) 
 	  {
 		 line[0] = lowPoint;
 		 currentPoint = lowPoint;
