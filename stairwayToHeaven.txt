@@ -39,6 +39,8 @@ static fortsPositionSize = 0;
  
 static secName = "";
 static file;
+
+static waitWhileActiveOrder = 0;
  
 function writeToLogFile(var message)
 {
@@ -395,10 +397,14 @@ function updateStopOrder()
 
 function onOrder(var id)
 {
+	if (getHour(getServerTime()) == 9 && getMinute(getServerTime()) < 58)
+	{
+		return;
+	}
 	var order = getOrder(id);
 	
 	if (order["status"] == OS_MATCHED)
-	{
+	{		
 		var newShares = calculateSharesCount();
         WriteLogMessage("New position created! New count of shares :" + newShares);
         WriteLogMessage("Updating orders for new level :" + order["condvalue"]);
