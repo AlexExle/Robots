@@ -297,8 +297,7 @@ function onOrder(var id)
 	{
 		requestFORTSPositions(clientId);	
 		if (order.haskey("condvalue") && as_number(order["condvalue"]) > 0)		
-		{
-			WriteLogMessage("Cancel other orders");
+		{			
 			if (isForts >0)
 			{
 				CancelAllOrderCustom();
@@ -327,18 +326,19 @@ function onTrade(var id)
 function onNewCandle() 
 {		
 	var orders = getActiveOrderIDs();
-
 	//if 12 00 we need to sell
 	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == minutes && open < line[0][-1] && getSecBalanceWrapper() >= 0)
-	{			
-		WriteLogMessage("Balance before SELL Enter  :" + getSecBalanceWrapper() );
+	{	
+		var beforeBalance =	getSecBalanceWrapper();	
 		updateOrders(OP_SELL, open);			
+		WriteLogMessage("Balance before SELL Enter  :" + beforeBalance);
 	}
 	//if 13 00 we need to buy
 	if(getHour(getCandleTime()) == 13 && getMinute(getCandleTime()) == minutes && open > line[0][-1] && getSecBalanceWrapper() <= 0)
-	{
-		WriteLogMessage("Balance before BUY Enter  :" + getSecBalanceWrapper() );
+	{		
+		var beforeBalance =	getSecBalanceWrapper();	
 		updateOrders(OP_BUY, open);
+		WriteLogMessage("Balance before BUY Enter  :" + beforeBalance );
 	}		
 }
 
