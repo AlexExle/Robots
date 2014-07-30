@@ -124,6 +124,11 @@ function init()
 	highPoint = currentPoint + step;
 }
 
+function onStartRobot()
+{
+	requestFORTSPositions(clientId);
+}
+
 function getSecBalanceWrapper()
 {
 	if (isForts == 0)
@@ -263,7 +268,7 @@ function updateOrders(var currentShare, var price)
 		}
 		else
 		{
-            WriteLogMessage("Created new order , price: " + enterPrice + "| Activation price: " + activationPrice);
+            WriteLogMessage("Created new SELL order , price: " + enterPrice + "| Activation price: " + activationPrice );
 		}
 		
 		activationPrice = price + step ;
@@ -275,7 +280,7 @@ function updateOrders(var currentShare, var price)
 		}
 		else
 		{
-            WriteLogMessage("Created new order , price: " + enterPrice + "| Activation price: " + activationPrice );
+            WriteLogMessage("Created new BUY order , price: " + enterPrice + "| Activation price: " + activationPrice );
 		}
 	}
 	if (currentShare == 1)
@@ -291,7 +296,7 @@ function updateOrders(var currentShare, var price)
 			}
 			else
 			{
-                WriteLogMessage("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice);
+                WriteLogMessage("Created new SELL order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice);
 			}
 		}
 		else
@@ -305,7 +310,7 @@ function updateOrders(var currentShare, var price)
 			}
 			else
 			{
-                WriteLogMessage("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice );
+                WriteLogMessage("Created new BUY order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice );
 			}
 		}
 	}
@@ -322,7 +327,7 @@ function updateOrders(var currentShare, var price)
 			}
 			else
 			{
-                WriteLogMessage("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice);
+                WriteLogMessage("Created new SELL order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice);
 			}
 			
 			activationPrice = price + step;
@@ -334,7 +339,7 @@ function updateOrders(var currentShare, var price)
 			}
 			else
 			{
-                WriteLogMessage("Created new order for take profit of one share, price: " + enterPrice + "| Activation price: " + activationPrice );
+                WriteLogMessage("Created new SELL order for take profit of one share, price: " + enterPrice + "| Activation price: " + activationPrice );
 			}		
 		}
 		else
@@ -349,7 +354,7 @@ function updateOrders(var currentShare, var price)
 			}
 			else
 			{
-                WriteLogMessage("Created new order for take profit of one share, price: " + enterPrice + "| Activation price: " + activationPrice);
+                WriteLogMessage("Created new BUY order for take profit of one share, price: " + enterPrice + "| Activation price: " + activationPrice);
 			}
 			
 			activationPrice = price + step;
@@ -361,7 +366,7 @@ function updateOrders(var currentShare, var price)
 			}
 			else
 			{
-                WriteLogMessage("Created new order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice );
+                WriteLogMessage("Created new BUY order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice );
 			}
 		}
 	}
