@@ -407,7 +407,10 @@ function onOrder(var id)
 		return;
 	}
 	var order = getOrder(id);
-	
+	if (order["status"] == OS_ACTIVE)
+	{
+		waitWhileActiveOrder = 1;
+	}
 	if (order["status"] == OS_MATCHED)
 	{		
 		var newShares = calculateSharesCount();
@@ -415,6 +418,7 @@ function onOrder(var id)
         WriteLogMessage("Updating orders for new level :" + order["condvalue"]);
 		updateOrders(newShares, as_number(order["condvalue"]));
 		//updateOrders(newShares);		
+		waitWhileActiveOrder = 0;
 	}
 }
 
@@ -452,7 +456,7 @@ function calc()
 	   currentPoint = highPoint;
 	   lowPoint =  highPoint - step;
 	   highPoint = highPoint + step;	
-	   if (getSecBalanceWrapper() > 0 && calculateSharesCount() == 1)
+	   if (getSecBalanceWrapper() > 0 && calculateSharesCount() == 1 && waitWhileActiveOrder == 0)
 	   {
 			updateOrders(calculateSharesCount(), currentPoint);  	     		
 	   }
@@ -464,7 +468,7 @@ function calc()
 		 currentPoint = lowPoint;
 		 highPoint = lowPoint + step;		   
 		 lowPoint = lowPoint - step;
-		 if (getSecBalanceWrapper() < 0 && calculateSharesCount() == 1)
+		 if (getSecBalanceWrapper() < 0 && calculateSharesCount() == 1 && waitWhileActiveOrder == 0)
 		 {
 			updateOrders(calculateSharesCount(), currentPoint);
 		 }	     		
