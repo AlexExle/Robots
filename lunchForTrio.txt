@@ -54,8 +54,10 @@ function GenerateTimeStamp()
 }
 
 function WriteLogMessage(var message)
-{
-	signal::outputMultiple(GenerateTimeStamp() + " - " + secName + " : " + message);
+{	
+	var logMsg = GenerateTimeStamp() + " - " + secName + " : " + message;
+	signal::outputMultiple(logMsg);
+	writeToLogFile(logMsg);
 }
 
 function CancelAllOrderCustom()
@@ -325,6 +327,10 @@ function onTrade(var id)
 
 function onNewCandle() 
 {		
+	if(getHour(getCandleTime()) == 10 && getMinute(getCandleTime()) == 3)
+	{
+		requestFORTSPositions(clientId);
+	)
 	var orders = getActiveOrderIDs();
 	//if 12 00 we need to sell
 	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == minutes && open < line[0][-1] && getSecBalanceWrapper() >= 0)
