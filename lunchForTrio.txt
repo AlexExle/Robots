@@ -330,7 +330,7 @@ function onNewCandle()
 	if(getHour(getCandleTime()) == 10 && getMinute(getCandleTime()) == 3)
 	{
 		requestFORTSPositions(clientId);
-	)
+	}
 	var orders = getActiveOrderIDs();
 	//if 12 00 we need to sell
 	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == minutes && open < line[0][-1] && getSecBalanceWrapper() >= 0)
