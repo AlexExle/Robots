@@ -327,7 +327,7 @@ function onTrade(var id)
 
 function onNewCandle() 
 {		
-	if(getHour(getCandleTime()) == 10 && getMinute(getCandleTime()) == 3)
+	if(getHour(getCandleTime()) == 10 && getMinute(getCandleTime()) == 5)
 	{
 		requestFORTSPositions(clientId);
 	}
