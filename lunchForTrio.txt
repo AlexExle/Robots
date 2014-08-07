@@ -60,6 +60,12 @@ function WriteLogMessage(var message)
 	writeToLogFile(logMsg);
 }
 
+function WriteToFile(var message)
+{
+	var logMsg = GenerateTimeStamp() + " - " + secName + " : " + message;	
+	writeToLogFile(logMsg);
+}
+
 function CancelAllOrderCustom()
 {
 	var secInf = getSecInfo();
@@ -108,7 +114,10 @@ function init()
 	quantityRate = 1;
 	secName = GetSecName();
 	line[0] = MovAvg(ind_ema, emaPeriod, pt_close);
-
+	if(getHour(getServerTime()) >= 10)
+	{
+		requestFORTSPositions(clientId);
+	}
 }
 
 function onStartRobot()
@@ -170,6 +179,7 @@ function onEnvEvent(var event)
 		
 		var frotsMoney = getFORTSMoney(clientId);
 		freeMoney  = frotsMoney["mcurrent"];
+		WriteToFile("Client: " clientId + "| MCurrent " + freeMoney);
   }
 }
 
@@ -192,6 +202,7 @@ function getSecLotSize()
 
 function calcQuantity(var price)
 {
+     WriteLogMessage("freeMoney " + freeMoney + " percentOfQuantuty " + percentOfQuantuty + " getSecLotSize " + getSecLotSize() + " goPrice " + goPrice );
 	WriteLogMessage("Calculated quantity for order: " + floor((freeMoney * (percentOfQuantuty/100))/(getSecLotSize() * (goPrice))));
 	return floor((freeMoney * (percentOfQuantuty/100))/(getSecLotSize() * (goPrice)));
 }
@@ -331,6 +342,14 @@ function onNewCandle()
 	{
 		requestFORTSPositions(clientId);
 	}
+	if(getHour(getCandleTime()) == 11 && getMinute(getCandleTime()) == 50)
+	{
+		requestFORTSPositions(clientId);
+	}
+	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == 50)
+	{
+		requestFORTSPositions(clientId);
+	}
 	var orders = getActiveOrderIDs();
 	//if 12 00 we need to sell
 	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == minutes && open < line[0][-1] && getSecBalanceWrapper() >= 0)
@@ -356,6 +375,7 @@ function onKeyDown(var key)
 // test current position function
   if (key == chr2num("1") and isKeyPressed(KEY_LSHIFT)) 
   {
+  	requestFORTSPositions(clientId);
     WriteLogMessage("Current Position :" + getSecBalanceWrapper());
   }
 //test cancel all orders
