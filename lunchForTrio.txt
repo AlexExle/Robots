@@ -179,7 +179,7 @@ function onEnvEvent(var event)
 		
 		var frotsMoney = getFORTSMoney(clientId);
 		freeMoney  = frotsMoney["mcurrent"];
-		WriteToFile("Client: " clientId + "| MCurrent " + freeMoney);
+		WriteToFile("Client: " + clientId + "| MCurrent " + freeMoney);
   }
 }
 
