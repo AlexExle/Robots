@@ -437,6 +437,7 @@ function onTrade(var id)
 	if (isForts > 0 )
 	{
 		fortsPositionSize = trade["currentpos"];
+		WriteLogMessage("Curent position changed:" + fortsPositionSize);
 	}
 }
 
