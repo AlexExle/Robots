@@ -65,6 +65,12 @@ function WriteLogMessage(var message)
 	writeToLogFile(logMsg);
 }
 
+function WriteToFile(var message)
+{
+	var logMsg = GenerateTimeStamp() + " - " + secName + " : " + message;	
+	writeToLogFile(logMsg);
+}
+
 function CancelAllOrderCustom()
 {
 	var secInf = getSecInfo();
@@ -157,6 +163,8 @@ function onEnvEvent(var event)
 			fortsPositionSize = fortsPos["totalnet"];
 		}
         WriteLogMessage("FORST position :" + fortsPositionSize);
+		var frotsMoney = getFORTSMoney(clientId);
+		WriteToFile("Client: " + clientId + ": MCurrent " + frotsMoney["mcurrent"]);
   }
 }
 
