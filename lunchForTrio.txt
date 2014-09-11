@@ -261,8 +261,15 @@ function setStopOrder(var orderType, var stopPrice, var takeProfitPrice, var qua
 	return trade_action::transactMultiple(stop);
 }
 
+function resetPositionStatus()
+{
+	setOrder(OP_BUY, 0, 1, 0, 0 );
+	setOrder(OP_SELL, 0, 1, 0, 0 );
+}
+
 function updateOrders(var operation, var price)
 {
+
 
 	if (isForts >0)
 	{
@@ -279,7 +286,7 @@ function updateOrders(var operation, var price)
 	positionOrder =  setOrder(operation, 0, quantity + abs(getSecBalanceWrapper()), 0, 0 );
 	if (operation == OP_SELL)
 	{
-		stopLossOrder = setOrder(OP_BUY, 0, quantity, COND_BID_OR_LAST, price + stopLoss);
+		stopLossOrder = setOrder(OP_BUY, price + stopLoss + (getSecPriceStep()* priceStepCount), quantity, COND_BID_OR_LAST, price + stopLoss);
 		takeProfitOrder = setOrder(OP_BUY, 0, quantity, COND_ASK_OR_LAST,  price - takeProfit);
 		
         //setStopOrder(OP_BUY, price + stopLoss, price - takeProfit, quantity);
@@ -287,7 +294,7 @@ function updateOrders(var operation, var price)
 	else
 	{
 		takeProfitOrder = setOrder(OP_SELL, 0, quantity, COND_BID_OR_LAST,  price + takeProfit );
-		stopLossOrder = setOrder(OP_SELL, 0, quantity, COND_ASK_OR_LAST, price - stopLoss );			
+		stopLossOrder = setOrder(OP_SELL, price - stopLoss - (getSecPriceStep()* priceStepCount), quantity, COND_ASK_OR_LAST, price - stopLoss );			
 			
         //setStopOrder(OP_SELL, price - stopLoss, price + takeProfit, quantity);
 	}
@@ -338,18 +345,11 @@ function onTrade(var id)
 
 function onNewCandle() 
 {		
-	if(getHour(getCandleTime()) == 10 && getMinute(getCandleTime()) == 5)
+	if(getHour(getCandleTime()) == 11 && getMinute(getCandleTime()) == 0)
 	{
-		requestFORTSPositions(clientId);
+		resetPositionStatus();
 	}
-	if(getHour(getCandleTime()) == 11 && getMinute(getCandleTime()) == 50)
-	{
-		requestFORTSPositions(clientId);
-	}
-	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == 50)
-	{
-		requestFORTSPositions(clientId);
-	}
+	
 	var orders = getActiveOrderIDs();
 	//if 12 00 we need to sell
 	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == minutes && open < line[0][-1] && getSecBalanceWrapper() >= 0)
@@ -372,63 +372,18 @@ function onNewCandle()
 //Shift + 1
 function onKeyDown(var key)
 {
-// test current position function
-  if (key == chr2num("1") and isKeyPressed(KEY_LSHIFT)) 
-  {
-  	requestFORTSPositions(clientId);
-    WriteLogMessage("Current Position :" + getSecBalanceWrapper());
-  }
-//test cancel all orders
-  if (key == chr2num("2") and isKeyPressed(KEY_LSHIFT)) 
-  {
-	WriteLogMessage("Try to custom delete orders");
-	CancelAllOrderCustom();
-  }
-  // test time determination
-  if (key == chr2num("3") and isKeyPressed(KEY_LSHIFT)) 
-  {
-	WriteLogMessage(getHour(getCandleTime()));
-	WriteLogMessage(getMinute(getCandleTime()));
-  }
   // test of creating order for sale with stop/take profit
-  if (key == chr2num("4") and isKeyPressed(KEY_LSHIFT)) 
+  if (key == chr2num("2") and isKeyPressed(KEY_LSHIFT)) 
   {
 	 updateOrders(OP_SELL, open);
   }
   // test of creating order for buy with stop/take profit
-  if (key == chr2num("5") and isKeyPressed(KEY_LSHIFT)) 
+  if (key == chr2num("1") and isKeyPressed(KEY_LSHIFT)) 
   {
 	  updateOrders(OP_BUY, open);
   }
-  //complex test without time compare
-  if (key == chr2num("6") and isKeyPressed(KEY_LSHIFT)) 
+  if (key == chr2num("3") and isKeyPressed(KEY_LSHIFT)) 
   {
-	var orders = getActiveOrderIDs();
-	signal::output("getHour(getCandleTime()) :" + getHour(getCandleTime()));
-	signal::output("getMinute(getCandleTime())  :" + getMinute(getCandleTime()));
-	signal::output("orders.size() :" + orders.size());
-	signal::output("open :" + open);
-	signal::output("line[0][-1] :" + line[0][-1]);
-	signal::output("getSecBalanceWrapper()  :" + getSecBalanceWrapper() );
-	
-	if( open < line[0][-1] && getSecBalanceWrapper() >=  0)
-	{
-	  	updateOrders(OP_SELL, open);
-	}	
-  }
-  if (key == chr2num("7") and isKeyPressed(KEY_LSHIFT)) 
-  {
-	var orders = getActiveOrderIDs();
-	signal::output("getHour(getCandleTime()) :" + getHour(getCandleTime()));
-	signal::output("getMinute(getCandleTime())  :" + getMinute(getCandleTime()));
-	signal::output("orders.size() :" + orders.size());
-	signal::output("open :" + open);
-	signal::output("line[0][-1] :" + line[0][-1]);
-	signal::output("getSecBalanceWrapper()  :" + getSecBalanceWrapper() );
-	
-	if( open > line[0][-1] && getSecBalanceWrapper() <= 0)
-	{
-		updateOrders(OP_BUY, open);
-	}		
+	  resetPositionStatus();
   }
 }
