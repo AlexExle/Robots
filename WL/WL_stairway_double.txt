@@ -1,0 +1,197 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using WealthLab;
+using WealthLab.Indicators;
+using System.Drawing;
+
+
+namespace ClassLibrary1
+{
+	class MyStrategyScript : WealthScript
+	{
+		//Create parameters
+
+		enum OverturnDirection
+		{
+			notDetermined,
+			low,
+			high            
+		}
+
+		Position overturnPosition = null;
+		Position mainPosition = null;
+
+		double CurrLevel = 0;
+
+		double HighLevel = 0;
+
+		double LowLevel = 0;
+
+		OverturnDirection direction = OverturnDirection.notDetermined;
+
+		int posCount = 0;
+		int positionCOunt = 0;
+		List<double> values = new List<double>();
+		StrategyParameter Offset;
+		StrategyParameter StepPar;
+		public MyStrategyScript()
+		{
+			Offset = CreateParameter("Offser", 0, 0, 300, 10);
+			StepPar = CreateParameter("Step", 30, 30, 300, 10);
+		}
+
+		protected override void Execute()
+		{
+			//Obtain periods from parameters
+
+			if (StepPar.Value < Offset.Value)
+				return;
+			Position overturnPosition = null;
+			Position mainPosition = null;
+
+			double startPoint = Open[0];
+
+			startPoint = startPoint - (startPoint % 10);
+			double previousPoint = 0;
+
+
+			// High - массив хаев для всех свечей
+			// Low - массив лоувов для всех свечей
+
+			double[] history = new double[Bars.Count];
+
+			DataSeries newDataSeries = new DataSeries("Test");
+
+			CurrLevel = Open[0];
+			CurrLevel = CurrLevel - (CurrLevel % StepPar.Value) + Offset.Value;
+			newDataSeries.Add(CurrLevel);
+			HighLevel = CurrLevel + StepPar.Value;
+			LowLevel = CurrLevel - StepPar.Value;
+			history[0] = CurrLevel;
+			int histoyCounter = 0;
+            /*currentPoint = open;
+            currentPoint = currentPoint - fmod(currentPoint, step) + offset;
+            line[0] = currentPoint;
+            lowPoint = currentPoint - step;
+            highPoint = currentPoint + step;*/
+
+            // shift the plotted series to the right one bar to visualize the crossings           
+
+			for (int bar = 1; bar < Bars.Count; bar++)
+			{
+				if (Date[bar].Month % 3 == 0 && Date[bar].Month != 1 && Date[bar].Day == 15)
+				{
+					if (overturnPosition != null && overturnPosition.Active)
+					{
+						ExitAtMarket(bar, overturnPosition, "Exit on Futures experation");
+					}
+					
+					if (mainPosition != null && mainPosition.Active)
+					{
+						ExitAtMarket(bar, mainPosition, "Exit on Futures experation");
+					}
+				}
+				
+
+				if (Positions.Count == 0)
+				{
+					mainPosition = BuyAtStop(bar + 1, HighLevel, "Short Main Position");
+					if (mainPosition == null)
+					{
+
+						mainPosition = ShortAtStop(bar + 1, LowLevel, "Long Main Position");
+					}
+				}
+				else
+				{
+
+					if (mainPosition.PositionType == PositionType.Long)
+					{
+						if (overturnPosition != null && overturnPosition.Active && overturnPosition.PositionType == PositionType.Long)
+						{
+							if (!SellAtStop(bar + 1, overturnPosition, overturnPosition.EntryPrice - StepPar.Value))
+							{
+								if (SellAtLimit(bar + 1, overturnPosition, overturnPosition.EntryPrice + StepPar.Value))
+								{
+									direction = OverturnDirection.low;
+								}
+							}
+							else
+							{
+								direction = OverturnDirection.high;
+							}
+                                
+						}
+						if (SellAtStop(bar + 1, mainPosition, LowLevel))
+						{
+							mainPosition = ShortAtStop(bar + 1, LowLevel, "Short Main Position");
+							if (direction == OverturnDirection.notDetermined || direction == OverturnDirection.low)
+								overturnPosition = ShortAtStop(bar + 1, LowLevel, "Short Aditional Posion");
+						}
+					}
+					else
+					{
+						if (overturnPosition != null && overturnPosition.Active && overturnPosition.PositionType == PositionType.Short)
+						{
+
+							if (!CoverAtStop(bar + 1, overturnPosition, overturnPosition.EntryPrice + StepPar.Value))
+							{
+								if (CoverAtLimit(bar + 1, overturnPosition, overturnPosition.EntryPrice - StepPar.Value))
+								{
+									direction = OverturnDirection.notDetermined;
+								}
+							}
+							else
+							{
+								direction = OverturnDirection.low;
+							}
+						}
+						if (CoverAtStop(bar + 1, mainPosition, HighLevel))
+						{
+							mainPosition = BuyAtStop(bar + 1, HighLevel, "Long  Main Position");
+							if (direction == OverturnDirection.notDetermined || direction == OverturnDirection.high)
+								overturnPosition = BuyAtStop(bar + 1, HighLevel, "Long Aditional Position");
+						}
+					}
+				}
+
+				if (High[bar] >= HighLevel)
+				{
+                  /*  if (overturnPosition != null && overturnPosition.Active && overturnPosition.PositionType == PositionType.Short)
+                    {
+                        CoverAtLimit(bar + 1, overturnPosition, LowLevel);
+                    }*/
+					CurrLevel = HighLevel;
+					LowLevel = CurrLevel - StepPar.Value;
+					HighLevel = CurrLevel + StepPar.Value;
+					histoyCounter++;
+					history[histoyCounter] = CurrLevel;
+                 
+				}
+				else
+				{
+					if (Low[bar] <= LowLevel)
+					{
+                       /* if (overturnPosition != null && overturnPosition.Active && overturnPosition.PositionType == PositionType.Short)
+                        {
+                            CoverAtLimit(bar + 1, overturnPosition, LowLevel);
+                        }*/
+						CurrLevel = LowLevel;
+						LowLevel = CurrLevel - StepPar.Value;
+						HighLevel = CurrLevel + StepPar.Value;
+						histoyCounter++;
+						history[histoyCounter] = CurrLevel;                       
+					}
+				}
+				newDataSeries.Add(CurrLevel);
+				
+			}
+			PlotSeries(PricePane, newDataSeries, Color.Green, LineStyle.Solid, 1);
+		}
+	}
+}
+
+
+

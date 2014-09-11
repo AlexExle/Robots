@@ -1,0 +1,89 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using WealthLab;
+using WealthLab.Indicators;
+using System.Drawing;
+
+
+namespace trio
+{
+
+	class MyStrategyScript : WealthScript
+	{
+		//Create parameters
+		// private StrategyParameter slowPeriod;
+		private StrategyParameter fastPeriod;
+		private StrategyParameter TakeProfit;
+		private StrategyParameter StopLoss;
+
+
+		public MyStrategyScript()
+		{
+			fastPeriod = CreateParameter("Fast Period", 100, 100, 1000, 100);
+			TakeProfit = CreateParameter("TakeProfit", 100, 300, 1500, 100);
+			StopLoss = CreateParameter("StopLoss", 100, 100, 500, 100);
+			// slowPeriod = CreateParameter("Slow Period", 500, 500, 1500, 50);
+		}
+
+		protected override void Execute()
+		{
+			//Obtain periods from parameters
+			int fastPer = fastPeriod.ValueInt;
+			// int slowPer = slowPeriod.ValueInt;
+
+
+			EMA smaFast = EMA.Series(Close, fastPer, EMACalculation.Legacy);
+			// SMA smaSlow = SMA.Series(Close, slowPer);
+
+			PlotSeries(PricePane, smaFast, Color.Green, LineStyle.Solid, 2);
+			//PlotSeries(PricePane, smaSlow, Color.Red, LineStyle.Solid, 2);
+
+			for (int bar = fastPer; bar < Bars.Count; bar++)
+			{
+				if (LastPosition != null && LastPosition.Active)
+				{
+					if (LastPosition.PositionType == PositionType.Long)
+					{
+						if (!ExitAtLimit(bar + 1, LastPosition, LastPosition.EntryPrice + TakeProfit.Value, "Long Take Profit"))
+							ExitAtStop(bar + 1, LastPosition, LastPosition.EntryPrice - StopLoss.Value, "Long Stop Loss");
+					}
+					else
+					{
+						if (!ExitAtLimit(bar + 1, LastPosition, LastPosition.EntryPrice - TakeProfit.Value, "Short Take Profit"))
+							ExitAtStop(bar + 1, LastPosition, LastPosition.EntryPrice + StopLoss.Value, "Short Stop Loss");
+					}
+				}
+				if (Date[bar].Hour == 11 && Date[bar].Minute == 55)
+				{
+					if (Close[bar] < smaFast[bar])
+					{
+						if (LastPosition != null && LastPosition.Active && LastPosition.PositionType == PositionType.Long)
+						{
+							ExitAtMarket(bar + 1, LastPosition, "Long Traling Stop");
+						}
+						if (LastPosition == null || !LastPosition.Active)
+							ShortAtMarket(bar + 1);
+					}
+				}
+				if (Date[bar].Hour == 12 && Date[bar].Minute == 55)
+				{
+					if (Close[bar] > smaFast[bar])
+					{
+						if (LastPosition != null && LastPosition.Active && LastPosition.PositionType == PositionType.Short)
+						{
+							ExitAtMarket(bar + 1, LastPosition, "Short Traling Stop");
+						}
+						if (LastPosition == null || !LastPosition.Active)
+							BuyAtMarket(bar + 1);
+					}
+				}
+			}
+
+		}
+	}
+}
+
+
+

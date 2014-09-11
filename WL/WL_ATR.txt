@@ -1,0 +1,162 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Drawing;
+using WealthLab;
+using WealthLab.Indicators;
+
+namespace WealthLab.Strategies
+{
+	public class MyStrategy : WealthScript
+	{
+		//Create parameters
+		private StrategyParameter step;
+		private StrategyParameter multiplier;
+		//private StrategyParameter inerval;
+		//Тут прописываем время
+		private string[] timesToUpdateLeveles = {"23:45"};
+
+
+		public MyStrategy()
+		{
+			step = CreateParameter("Period", 25, 25, 500, 25);
+			multiplier = CreateParameter("multiplier", 2, 0.5, 3, 0.1);
+
+		}
+
+		protected override void Execute()
+		{
+			List<DateTime> dates = new List<DateTime>();
+			foreach(var i in timesToUpdateLeveles)
+			{
+				dates.Add(DateTime.Parse(i));
+			}
+			int stepVal = step.ValueInt;
+		//	double inervalVal = inerval.Value;
+			int minutesInterval = 1;//(int)Math.Floor(60 * inervalVal);
+			var curDate = this.Date[0];
+			var nextDate = curDate.AddMinutes(minutesInterval);
+			double highLevel = Close[0] + stepVal;
+			double lowLevel = Close[0] - stepVal;
+
+			ATR atr = ATR.Series(Bars, stepVal);
+			
+			DataSeries highLevelSeries = new DataSeries("high");
+			DataSeries lowLevelSeries = new DataSeries("low");
+			DataSeries highLevelSeries2 = new DataSeries("doubleHigh");
+			DataSeries lowLevelSeries2 = new DataSeries("doubleLow");
+			lowLevelSeries.Add(lowLevel);
+			highLevelSeries.Add(highLevel);
+			lowLevelSeries2.Add(lowLevel - stepVal);
+			highLevelSeries2.Add(highLevel + stepVal);
+
+
+			for (int bar = 1; bar < Bars.Count; bar++)
+			{
+				
+				//обновляем левела по наступлению конца интервала времени
+				//Переносим остаток на след денб
+				/*if(bar >1 && this.Date[bar].Hour == 10 && this.Date[bar].Minute == 0)
+				{
+				var endDayDate = this.Date[bar - 1];
+				DateTime begin = DateTime.Now;
+				TimeSpan rez = nextDate - endDayDate;
+				nextDate = this.Date[bar].AddMinutes(rez.Minutes);
+				}*/
+			
+					if (IsDateInArray(this.Date[bar],dates))
+					{
+						curDate = this.Date[bar];
+						//nextDate = curDate.AddMinutes(minutesInterval);
+						highLevel = Close[bar] + atr[bar]*multiplier.Value;
+						lowLevel = Close[bar] - atr[bar]*multiplier.Value;
+					}
+					lowLevelSeries.Add(lowLevel);
+					highLevelSeries.Add(highLevel);
+					lowLevelSeries2.Add(lowLevel - atr[bar]*multiplier.Value);
+					highLevelSeries2.Add(highLevel + atr[bar]*multiplier.Value);
+					if (bar >600){
+					TradeWithStopOrders(highLevelSeries2, lowLevelSeries2, bar);
+					}
+				}
+			
+			PlotSeries(PricePane, highLevelSeries >> 1, Color.Green, LineStyle.Dotted, 1);
+			PlotSeries(PricePane, lowLevelSeries >> 1, Color.Green, LineStyle.Dotted, 1);
+			PlotSeries(PricePane, highLevelSeries2 >> 1, Color.Green, LineStyle.Solid, 2);
+			PlotSeries(PricePane, lowLevelSeries2 >> 1, Color.Green, LineStyle.Solid, 2);
+			//PlotSeries(PricePane, newDataSeries, Color.Green, LineStyle.Solid, 1);
+		}
+
+		private void TradeWithStopOrders(DataSeries highLevelSeries2, DataSeries lowLevelSeries2, int bar)
+		{
+
+			if (Positions.Count == 0)
+			{
+				if (BuyAtStop(bar + 1, highLevelSeries2[bar]) == null)
+				{
+
+					ShortAtStop(bar + 1, lowLevelSeries2[bar]);
+				}
+			}
+			else
+			{
+				Position Pos = LastPosition;
+				if (Pos.PositionType == PositionType.Long)
+				{
+					if (SellAtStop(bar + 1, Pos, lowLevelSeries2[bar]))
+						ShortAtStop(bar + 1, lowLevelSeries2[bar], "Short Over Turn");
+				}
+				else
+				{
+					if (CoverAtStop(bar + 1, LastPosition, highLevelSeries2[bar]))
+						Pos = BuyAtStop(bar + 1, highLevelSeries2[bar], "Longg ver Turn");
+				}
+			}
+		}
+
+
+		private void TradeWithMarketOrders(DataSeries highLevelSeries2, DataSeries lowLevelSeries2, int bar)
+		{
+
+			if (Positions.Count == 0)
+			{
+				if (Low[bar] < lowLevelSeries2[bar])                
+					ShortAtMarket(bar+1);               
+				else
+					if (High[bar] > highLevelSeries2[bar])
+					BuyAtMarket(bar+1);             
+			}
+			else
+			{
+				Position Pos = LastPosition;
+				if (Pos.PositionType == PositionType.Long)
+				{
+					if (Low[bar] < lowLevelSeries2[bar])
+					{
+						SellAtMarket(bar+1, Pos);
+						ShortAtMarket(bar+1);
+					}                  
+				}
+				else
+				{
+					if (High[bar] > highLevelSeries2[bar])
+					{
+						CoverAtMarket(bar+1, Pos);
+						BuyAtMarket(bar+1);
+					}         
+				}
+			}
+		}
+		
+		protected bool IsDateInArray(DateTime date, List<DateTime> array)
+		{
+			foreach (var dt in array)
+			{
+				if (date.Minute == dt.Minute && date.Hour == dt.Hour)
+					return true;
+				
+			}
+			return false;
+		}
+	}
+}
