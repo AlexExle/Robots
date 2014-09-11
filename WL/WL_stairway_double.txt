@@ -81,20 +81,6 @@ namespace ClassLibrary1
 
 			for (int bar = 1; bar < Bars.Count; bar++)
 			{
-				if (Date[bar].Month % 3 == 0 && Date[bar].Month != 1 && Date[bar].Day == 15)
-				{
-					if (overturnPosition != null && overturnPosition.Active)
-					{
-						ExitAtMarket(bar, overturnPosition, "Exit on Futures experation");
-					}
-					
-					if (mainPosition != null && mainPosition.Active)
-					{
-						ExitAtMarket(bar, mainPosition, "Exit on Futures experation");
-					}
-				}
-				
-
 				if (Positions.Count == 0)
 				{
 					mainPosition = BuyAtStop(bar + 1, HighLevel, "Short Main Position");
