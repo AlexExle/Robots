@@ -76,7 +76,7 @@ function CancelAllOrderCustom()
 		while (i < allOrders.size()) {
 			var orderId = allOrders[i];
 			var order = getOrder(orderId);		
-			if (order["secid"] == secInf["secid"] && (order["status"] == OS_WATCHING || order["status"] == OS_ACTIVE))
+			if (order["secid"] == secInf["secid"] && order["client"] == clientId && (order["status"] == OS_WATCHING || order["status"] == OS_ACTIVE))
 			{			
 				trade_action::cancelOrder(order);
 			}
@@ -312,7 +312,10 @@ function updateOrders(var operation, var price)
 function onOrder(var id)
 {
 	var order = getOrder(id);
-	
+	if (order["client"] != clientId)
+	{
+		return;
+	}
 	if (order["status"] == OS_MATCHED)
 	{
 		requestFORTSPositions(clientId);	
@@ -335,7 +338,10 @@ function onOrder(var id)
 function onTrade(var id) 
 {
 	var trade = getTrade(id);
-
+	if (trade["client"] != clientId)
+	{
+		return;
+	}
 	if (isForts > 0 )
 	{
 		fortsPositionSize = trade["currentpos"];
