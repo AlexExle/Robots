@@ -1,0 +1,57 @@
+#line 1 nodraw
+
+extern period = 27;
+ 
+static tr = 0;
+
+static counter = 0;
+
+function init()
+{	
+	
+	line[1] = high[1] - low[1];
+	
+	counter = 0;
+}
+ 
+function calcART()
+{
+var tr = high - low;
+	if( counter > 0)
+	{
+		var hc = high - close[-1];
+		if (hc < 0)
+		{
+			hc = hc * -1;
+		}
+		var lc = low - close[-1];
+		if (lc < 0)
+		{
+			lc = lc * -1;
+		}
+		if (tr < hc ) {tr = hc ;}
+		if (tr < lc) {tr = lc;}
+	}
+	line[1] = tr;
+	if(counter < period)
+	{
+		line[0] = 0;
+	}
+	if(counter == period)
+	{
+		line[0] = sumLine(1, period) ;
+	}
+	if(counter > period)
+	{
+		line[0] = (line[0][-1]*(period-1) + line[1])/period;
+	}
+	if (counter <= period)
+	{
+		counter = counter + 1;
+	}
+}
+
+function calc()
+{	
+	calcART();
+}
