@@ -14,9 +14,8 @@ Settings=
 	}
 }
 
-currentPoint = 0
-lowPoint = 0
-highPoint = 0
+counter = 0
+
 
 function Init()
 
