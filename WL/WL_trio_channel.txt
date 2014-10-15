@@ -1,0 +1,132 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using WealthLab;
+using WealthLab.Indicators;
+using System.Drawing;
+
+
+namespace trio
+{
+
+	class MyStrategyScript : WealthScript
+	{
+		//Create parameters
+		// private StrategyParameter slowPeriod;
+	//	private StrategyParameter hourShort;
+	//	private StrategyParameter hourLong;
+
+
+		StrategyParameter fastPeriod;
+		StrategyParameter TakeProfit;
+		StrategyParameter StopLoss;
+		StrategyParameter Offset;
+		public MyStrategyScript()
+		{
+			fastPeriod = CreateParameter("Fast Period", 300, 100, 500, 100);
+			TakeProfit = CreateParameter("TakeProfit", 700, 300, 1000, 100);
+			StopLoss = CreateParameter("StopLoss", 100, 100, 500, 100);
+			Offset = CreateParameter("Offset", 300, 100, 600, 100);
+		}
+
+		protected override void Execute()
+		{
+			//Obtain periods from parameters
+			int offset = Offset.ValueInt;
+			int fastPer = fastPeriod.ValueInt;
+			
+			double	trendTP = 650;
+			double	trendSL = 100;
+			
+			double  flatTP = TakeProfit.Value;
+			double	flatSL = StopLoss.Value;
+			// int slowPer = slowPeriod.ValueInt;
+
+
+			EMA smaFast = EMA.Series(Close, fastPer, EMACalculation.Modern);
+			// SMA smaSlow = SMA.Series(Close, slowPer);
+			DataSeries upChannel = smaFast + offset;
+			DataSeries downChannel = smaFast - offset;
+
+			PlotSeries(PricePane, smaFast, Color.Green, LineStyle.Solid, 2);
+			
+			PlotSeries(PricePane, upChannel, Color.Green, LineStyle.Solid, 2);
+			PlotSeries(PricePane, downChannel, Color.Green, LineStyle.Solid, 2);
+			//PlotSeries(PricePane, smaSlow, Color.Red, LineStyle.Solid, 2);
+		
+			
+			for (int bar = smaFast.FirstValidValue; bar < Bars.Count; bar++)
+			{
+					
+				bool shortTime = Date[bar].Hour == 11 && Date[bar].Minute == 55;
+				bool longTime = Date[bar].Hour == 12 && Date[bar].Minute == 55;
+				
+				bool isShortTrand = (Close[bar] < smaFast[bar] && Close[bar] > downChannel[bar]);
+				bool isShortFlat = Close[bar] > upChannel[bar];
+				bool isLongTrand = Close[bar] > smaFast[bar]&& Close[bar] < upChannel[bar];
+				bool isLongFlat = Close[bar] < downChannel[bar];
+				
+				if (IsLastPositionActive)
+				{
+					if (LastPosition.PositionType == PositionType.Long)
+					{
+						if (!ExitAtLimit(bar + 1, LastPosition, LastPosition.EntryPrice + LastPosition.AutoProfitLevel, "Long Take Profit " + LastPosition.AutoProfitLevel.ToString()))
+							ExitAtStop(bar + 1, LastPosition, LastPosition.EntryPrice - LastPosition.RiskStopLevel, "Long Stop Loss "+ LastPosition.RiskStopLevel.ToString());
+					}
+					else
+					{
+						if (!ExitAtLimit(bar + 1, LastPosition, LastPosition.EntryPrice - LastPosition.AutoProfitLevel, "Short Take Profit " + LastPosition.AutoProfitLevel.ToString()))
+							ExitAtStop(bar + 1, LastPosition, LastPosition.EntryPrice + LastPosition.RiskStopLevel, "Short Stop Loss "+ LastPosition.RiskStopLevel.ToString());
+					}
+				}
+			
+				if ((shortTime && isShortTrand) || (longTime && isShortFlat))
+				{
+					if (LastPosition != null && LastPosition.Active && LastPosition.PositionType == PositionType.Long)
+					{
+						ExitAtMarket(bar + 1, LastPosition, "Long Traling Stop");
+					}
+					if (LastPosition == null || !LastPosition.Active)
+					{
+						Position pos = ShortAtMarket(bar + 1);
+						if (isShortTrand)
+						{
+							pos.RiskStopLevel = trendSL;
+							pos.AutoProfitLevel = trendTP;
+						}		
+						if (isShortFlat)
+						{
+							pos.RiskStopLevel = flatSL;
+							pos.AutoProfitLevel =  flatTP;
+						}
+					}			
+				}
+		
+				if ((shortTime && isLongFlat) || (longTime && isLongTrand))
+				{
+					if (LastPosition != null && LastPosition.Active && LastPosition.PositionType == PositionType.Short)
+					{
+						ExitAtMarket(bar + 1, LastPosition, "Short Traling Stop");
+					}
+					if (LastPosition == null || !LastPosition.Active)
+					{
+					 	Position pos = BuyAtMarket(bar + 1);
+						if (isLongTrand)
+						{
+							pos.RiskStopLevel = trendSL;
+							pos.AutoProfitLevel = trendTP;
+						}		
+						if (isLongFlat)
+						{
+							pos.RiskStopLevel = flatSL;
+							pos.AutoProfitLevel =  flatTP;
+						}
+					}
+					
+				}
+				
+			}
+		}
+	}
+}
