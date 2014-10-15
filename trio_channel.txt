@@ -1,0 +1,419 @@
+#samewindow
+//stairway
+#line 0 solid #911e42 
+
+#line 1 solid #911e42 
+
+#line 2 solid #911e42 
+
+extern stopLoss = 100;
+
+extern takeProfit = 600;
+
+extern percentOfQuantuty = 40;
+
+extern priceStepCount = 5;
+
+extern lotSize = 0;
+
+extern isForts = 1;
+
+extern "string" clientId = "client";
+
+extern goPrice = 1200;
+
+extern emaPeriod = 300;
+
+extern minutes = 0;
+
+extern offset = 300;
+
+static needUpdate = 0;
+
+static quantityRate;
+static position;
+static fortsPositionSize = 0;
+static freeMoney = 0;
+
+static positionOrder = 0;
+static takeProfitOrder = 0;
+static stopLossOrder = 0;
+
+static secName = "";
+
+static file;
+ 
+function writeToLogFile(var message)
+{
+	file.writeLn(message);
+}
+
+function GetSecName()
+{
+	var secInf = getSecInfo();
+	return secInf["secname"];
+}
+
+function GenerateTimeStamp()
+{
+	return getFormattedDateTime(getServerTime());
+}
+
+function WriteLogMessage(var message)
+{	
+	var logMsg = GenerateTimeStamp() + " - " + secName + " : " + message;
+	signal::outputMultiple(logMsg);
+	writeToLogFile(logMsg);
+}
+
+function WriteToFile(var message)
+{
+	var logMsg = GenerateTimeStamp() + " - " + secName + " : " + message;	
+	writeToLogFile(logMsg);
+}
+
+function CancelAllOrderCustom()
+{
+	var secInf = getSecInfo();
+	var allOrders = getAllOrderIDs();
+	var i = 0;
+	if (allOrders.size() != 0)
+	{
+		while (i < allOrders.size()) {
+			var orderId = allOrders[i];
+			var order = getOrder(orderId);		
+			if (order["secid"] == secInf["secid"] && order["client"] == clientId && (order["status"] == OS_WATCHING || order["status"] == OS_ACTIVE))
+			{			
+				trade_action::cancelOrder(order);
+			}
+			i += 1;
+		}
+	}	
+}
+
+function CancelAllStopOrdersCustom()
+{
+	var secInf = getSecInfo();	
+	var allOrders = getAllStopOrderIDs();
+	var i = 0;
+	if (allOrders.size() != 0)
+	{
+		while (i < allOrders.size()) {
+			var orderId = allOrders[i];
+			var order = getStopOrder(orderId);		
+			if (order["secid"] == secInf["secid"] && (order["status"] == SS_WATCHING))
+			{			
+				trade_action::cancelStopOrder(order["secid"]);
+			}
+			i += 1;
+		}
+	}	
+	
+}
+
+function init()
+{
+	file = new_object("file");
+	file.waopen("atf_robot_log.txt");
+	setClient(clientId);
+	position = 0;
+	quantityRate = 1;
+	secName = GetSecName();
+	line[0] = MovAvg(ind_ema, emaPeriod, pt_close);
+	line[1] = line[0] + offset;
+	line[2] = line[0] - offset;
+	if(getHour(getServerTime()) >= 10)
+	{
+		requestFORTSPositions(clientId);
+	}
+}
+
+function onStartRobot()
+{
+	requestFORTSPositions(clientId);
+}
+
+function calc()
+{
+	line[0] = MovAvg(ind_ema, emaPeriod, pt_close);
+	line[1] = line[0] + offset;
+	line[2] = line[0] - offset;
+}
+
+function getSecBalanceWrapper()
+{
+	var result;
+	if (isForts == 0)
+	{
+		result = getSecBalance();
+	}
+	else
+	{
+		result = fortsPositionSize;
+	}
+	
+	return as_number(result);
+	
+}
+
+function getFreeMoney()
+{
+	if(isForts == 0)
+	{
+		return getMoneyBalance();
+	}
+	else
+	{
+		return freeMoney;
+	}
+}
+
+function onEnvEvent(var event)
+{
+  if (event == "CLIENT_HOLDINGS") {
+		var secInf = getSecInfo();
+		var fortsPos = getFORTSPosition(clientId, secInf["secid"]);    
+		
+		
+		if (!fortsPos.haskey("totalnet") )
+		{
+			fortsPositionSize = 0;
+		}
+		else
+		{
+			fortsPositionSize = fortsPos["totalnet"];
+		}
+		
+		WriteLogMessage("new Forst Position from Holdings:" + fortsPositionSize);
+
+		
+		var frotsMoney = getFORTSMoney(clientId);
+		freeMoney  = frotsMoney["mcurrent"];
+		WriteToFile("Client: " + clientId + "| MCurrent " + freeMoney);
+  }
+}
+
+function getSecPriceStep()
+{
+	var secInfo = getSecInfo();
+	return as_number(secInfo["minstep"]);
+}
+
+function getSecLotSize()
+{
+	if (lotSize == 0) {
+		var secInfo = getSecInfo();
+		return as_number(secInfo["lotsize"]);
+	}
+	else {
+		return lotSize;
+	}
+}
+
+function calcQuantity(var price)
+{
+     WriteLogMessage("freeMoney " + freeMoney + " percentOfQuantuty " + percentOfQuantuty + " getSecLotSize " + getSecLotSize() + " goPrice " + goPrice );
+	WriteLogMessage("Calculated quantity for order: " + floor((freeMoney * (percentOfQuantuty/100))/(getSecLotSize() * (goPrice))));
+	return floor((freeMoney * (percentOfQuantuty/100))/(getSecLotSize() * (goPrice)));
+}
+
+function setOrder(var orderType, var price, var quantity, var condition, var conditionPrice)
+{
+	var order = new_object("hash");
+
+	order["operation"] = orderType;
+	order["quantity"] = quantity;
+	if (isForts > 0)
+	{
+		order["usecredit"] = false;
+	}
+	else
+	{
+		order["usecredit"] = true;
+	}
+	order["client"] = clientId;
+	if (price != 0)
+	{
+		order["price"] = price;
+	}
+	order["validbefore"] = TILL_CANCELED;
+	if (conditionPrice != 0)
+	{
+		order["condition"] = condition;
+		order["condvalue"] = conditionPrice;
+	}
+
+	return trade_action::transactMultiple(order);
+}
+
+function setStopOrder(var orderType, var stopPrice, var takeProfitPrice, var quantity)
+{
+    if (quantity == 0 || (stopPrice == 0 && takeProfitPrice == 0))
+	{
+		return 0;
+	}
+	var stop = new_object("hash");
+
+	// common Settings
+	stop["operation"] = orderType;
+	stop["validbefore"] = TILL_CANCELED;
+	stop["client"] = clientId;
+
+	//  Stop Loss
+	stop["sl_activationprice"] = stopPrice ;
+	stop["sl_quantity"] = quantity;
+	
+	// take profig
+	
+	stop["tp_activationprice"] = takeProfitPrice;
+	stop["tp_quantity"] = quantity;	
+
+	return trade_action::transactMultiple(stop);
+}
+
+function resetPositionStatus()
+{
+	setOrder(OP_BUY, 0, 1, 0, 0 );
+	setOrder(OP_SELL, 0, 1, 0, 0 );
+}
+
+function updateOrders(var operation, var price)
+{
+
+
+	if (isForts >0)
+	{
+		CancelAllOrderCustom();
+	}
+	else
+	{
+		trade_action::cancelBuyOrders();
+		trade_action::cancelSellOrders();
+		trade_action::cancelAllOrders();
+	}
+	CancelAllStopOrdersCustom();
+	var quantity = calcQuantity(price);
+	positionOrder =  setOrder(operation, 0, quantity + abs(getSecBalanceWrapper()), 0, 0 );
+	if (operation == OP_SELL)
+	{
+		stopLossOrder = setOrder(OP_BUY, price + stopLoss + (getSecPriceStep()* priceStepCount), quantity, COND_BID_OR_LAST, price + stopLoss);
+		takeProfitOrder = setOrder(OP_BUY, 0, quantity, COND_ASK_OR_LAST,  price - takeProfit);
+		
+        //setStopOrder(OP_BUY, price + stopLoss, price - takeProfit, quantity);
+	}
+	else
+	{
+		takeProfitOrder = setOrder(OP_SELL, 0, quantity, COND_BID_OR_LAST,  price + takeProfit );
+		stopLossOrder = setOrder(OP_SELL, price - stopLoss - (getSecPriceStep()* priceStepCount), quantity, COND_ASK_OR_LAST, price - stopLoss );			
+			
+        //setStopOrder(OP_SELL, price - stopLoss, price + takeProfit, quantity);
+	}
+	if (not positionOrder) 
+	{
+		 WriteLogMessage(getLastErrorMessage());
+	}
+	else
+	{
+	
+	   WriteLogMessage("Update position. Price : " + price);
+	}
+}
+
+function onOrder(var id)
+{
+	var order = getOrder(id);
+	if (order["client"] != clientId)
+	{
+		return;
+	}
+	if (order["status"] == OS_MATCHED)
+	{
+		requestFORTSPositions(clientId);	
+		if (order.haskey("condvalue") && as_number(order["condvalue"]) > 0)		
+		{			
+			if (isForts >0)
+			{
+				CancelAllOrderCustom();
+			}
+			else
+			{
+				trade_action::cancelBuyOrders();
+				trade_action::cancelSellOrders();
+				trade_action::cancelAllOrders();
+			}
+		}
+	}
+}
+
+function onTrade(var id) 
+{
+	var trade = getTrade(id);
+	if (trade["client"] != clientId)
+	{
+		return;
+	}
+	if (isForts > 0 )
+	{
+		fortsPositionSize = trade["currentpos"];
+		WriteLogMessage("New Forst Position from CurrentPos :" + fortsPositionSize);
+	}
+}
+
+function onNewCandle() 
+{		
+	if(getHour(getCandleTime()) == 11 && getMinute(getCandleTime()) == 0)
+	{
+		resetPositionStatus();
+	}
+	
+	var orders = getActiveOrderIDs();
+	//if 12 00 price in channel and < ema
+	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == minutes && open < line[0][-1] && open > line[2][-1] && getSecBalanceWrapper() >= 0)
+	{	
+		var beforeBalance =	getSecBalanceWrapper();	
+		updateOrders(OP_SELL, open);			
+		WriteLogMessage("Balance before SELL Enter  :" + beforeBalance);
+	}
+	//if 12 00 price < low channel
+	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == minutes && open < line[2][-1] && getSecBalanceWrapper() <= 0)
+	{		
+		var beforeBalance =	getSecBalanceWrapper();	
+		updateOrders(OP_BUY, open);
+		WriteLogMessage("Balance before BUY Enter  :" + beforeBalance );
+	}		
+	//if 13 00 price > high channel
+	if(getHour(getCandleTime()) == 13 && getMinute(getCandleTime()) == minutes && open > line[1][-1] && getSecBalanceWrapper() >= 0)
+	{	
+		var beforeBalance =	getSecBalanceWrapper();	
+		updateOrders(OP_SELL, open);			
+		WriteLogMessage("Balance before SELL Enter  :" + beforeBalance);
+	}	
+	//if 13 00 price in channel > ema
+	if(getHour(getCandleTime()) == 13 && getMinute(getCandleTime()) == minutes && open > line[0][-1] && open < line[1][-1] && getSecBalanceWrapper() <= 0)
+	{		
+		var beforeBalance =	getSecBalanceWrapper();	
+		updateOrders(OP_BUY, open);
+		WriteLogMessage("Balance before BUY Enter  :" + beforeBalance );
+	}		
+}
+
+// BUTTONS FOR TESTING //
+
+//Shift + 1
+function onKeyDown(var key)
+{
+  // test of creating order for sale with stop/take profit
+  if (key == chr2num("2") and isKeyPressed(KEY_LSHIFT)) 
+  {
+	 updateOrders(OP_SELL, open);
+  }
+  // test of creating order for buy with stop/take profit
+  if (key == chr2num("1") and isKeyPressed(KEY_LSHIFT)) 
+  {
+	  updateOrders(OP_BUY, open);
+  }
+  if (key == chr2num("3") and isKeyPressed(KEY_LSHIFT)) 
+  {
+	  resetPositionStatus();
+  }
+}
