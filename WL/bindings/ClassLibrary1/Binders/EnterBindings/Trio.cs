@@ -31,7 +31,7 @@ namespace ClassLibrary1.Binders.EnterBindings
 
             if (StrategyInstance.Bars.Close[bar] > trendEma[bar] && StrategyInstance.Bars.Date[bar].Hour == 13 && StrategyInstance.Bars.Date[bar].Minute == 00) // Закрытие бара выше медленной скользящей
                 return EnterSignalType.Up;
-            if (StrategyInstance.Bars.Close[bar] < trendEma[bar] && StrategyInstance.Bars.Date[bar].Hour == 13 && StrategyInstance.Bars.Date[bar].Minute == 00) // Закрытие бара ниже медленной скользящей
+            if (StrategyInstance.Bars.Close[bar] < trendEma[bar] && StrategyInstance.Bars.Date[bar].Hour == 12 && StrategyInstance.Bars.Date[bar].Minute == 00) // Закрытие бара ниже медленной скользящей
                 return EnterSignalType.Down;
             return EnterSignalType.None;
         }
