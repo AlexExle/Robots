@@ -1,0 +1,418 @@
+#samewindow
+//stairway
+#line 0 solid #911e42 
+
+#line 1 solid  #911e42 
+
+extern period = 150;
+
+extern risk = 5;
+
+extern priceStepCount = 5;
+
+extern lotSize = 0;
+
+extern goPrice = 0;
+
+extern isForts = 1;
+
+extern "string" clientId = "client";
+
+static currentPoint = 0;
+
+static lowPoint;
+
+static isUpdated = 0;
+
+static highPoint;
+
+static curStopOrder;
+
+static curShortOrder;
+
+static curLongOrder;
+
+static enterPrice;
+
+static fortsPositionSize = 0;
+ 
+static secName = "";
+static file;
+static freeMoney = 0;
+
+static tr = 0;
+
+static count = 0;
+ 
+function getFreeMoney()
+{
+	if(isForts == 0)
+	{
+		return getMoneyBalance();
+	}
+	else
+	{
+		return freeMoney;
+	}
+}
+ 
+function writeToLogFile(var message)
+{
+	file.writeLn(message);
+}
+
+function GetSecName()
+{
+	var secInf = getSecInfo();
+	return secInf["secname"];
+}
+
+function GenerateTimeStamp()
+{
+	return getFormattedDateTime(getServerTime());
+}
+
+function WriteLogMessage(var message)
+{	
+	var logMsg = GenerateTimeStamp() + " - " + secName + " : " + message;
+	signal::outputMultiple(logMsg);
+	writeToLogFile(logMsg);
+}
+
+function WriteToFile(var message)
+{
+	var logMsg = GenerateTimeStamp() + " - " + secName + " : " + message;	
+	writeToLogFile(logMsg);
+}
+
+function CancelAllOrderCustom()
+{
+	var secInf = getSecInfo();
+	var allOrders = getAllOrderIDs();
+	var i = 0;
+	if (allOrders.size() != 0)
+	{
+		while (i < allOrders.size()) {
+			var orderId = allOrders[i];
+			var order = getOrder(orderId);		
+			//may be we don't need to remove active orders.
+			if (order["secid"] == secInf["secid"]  && order["client"] == clientId && order["status"] == OS_WATCHING )
+			{			
+				trade_action::cancelOrder(order);
+			}
+			i += 1;
+		}
+	}
+}
+
+function HasActiveOrders()
+{
+	var secInf = getSecInfo();
+	var allOrders = getAllOrderIDs();
+	var i = 0;
+	if (allOrders.size() != 0)
+	{
+		while (i < allOrders.size()) {
+			var orderId = allOrders[i];
+			var order = getOrder(orderId);		
+			if (order["secid"] == secInf["secid"] && order["client"] == clientId && order["status"] == OS_ACTIVE)
+			{			
+				return true;
+			}
+			i += 1;
+		}
+	}
+	return false;
+}
+
+function HasActiveWatchingOrders()
+{
+	var secInf = getSecInfo();
+	var allOrders = getAllOrderIDs();
+	var i = 0;
+	if (allOrders.size() != 0)
+	{
+		while (i < allOrders.size()) {
+			var orderId = allOrders[i];
+			var order = getOrder(orderId);		
+			if (order["secid"] == secInf["secid"]  && order["client"] == clientId && (order["status"] == OS_WATCHING || order["status"] == OS_ACTIVE))
+			{			
+				return true;
+			}
+			i += 1;
+		}
+	}
+	return false;
+}
+
+function init()
+{	
+	file = new_object("file");
+	file.waopen("atr_cannal_log.txt");
+	secName = GetSecName();
+	setClient(clientId);
+	
+	count = 0;
+	setInitCandles(period);
+	setBounds(0, period, 0);
+	setBounds(1, period, 0);
+	requestFORTSPositions(clientId);
+
+}
+
+function onStartRobot()
+{
+	requestFORTSPositions(clientId);
+}
+
+function getSecBalanceWrapper()
+{
+	if (isForts == 0)
+	{
+		return getSecBalance();
+	}
+	else
+	{
+		return fortsPositionSize;
+	}
+}
+
+function onEnvEvent(var event)
+{
+  if (event == "CLIENT_HOLDINGS") {
+		var secInf = getSecInfo();
+		var fortsPos = getFORTSPosition(clientId, secInf["secid"]);    
+        WriteLogMessage("secInf :" + secInf["secid"]);
+        WriteLogMessage("getClient :" + clientId);
+		if (!fortsPos.haskey("totalnet") )
+		{
+			fortsPositionSize = 0;
+		}
+		else
+		{
+			fortsPositionSize = fortsPos["totalnet"];
+		}
+        WriteLogMessage("FORST position :" + fortsPositionSize);
+		
+		var frotsMoney = getFORTSMoney(clientId);
+		freeMoney  = frotsMoney["mblocked"] + frotsMoney["mfree"];
+		WriteToFile("Client: " + clientId + "| MCurrent " + freeMoney);
+  }
+}
+
+function getSecPriceStep()
+{
+	var secInfo = getSecInfo();
+	return as_number(secInfo["minstep"]);
+}
+
+function getSecLotSize()
+{
+	if (lotSize == 0) {
+		var secInfo = getSecInfo();
+		return as_number(secInfo["lotsize"]);
+	}
+	else {
+		return lotSize;
+	}
+}
+
+function calcQuantity(var price)
+{
+     WriteLogMessage("freeMoney " + freeMoney + " risk " + risk + " getSecLotSize " + getSecLotSize() + " goPrice " + goPrice );
+	WriteLogMessage("Calculated quantity for order: " + floor((freeMoney * risk)/(highPoint - lowPoint)) );
+	return floor((freeMoney * risk * 100)/(highPoint - lowPoint));
+	
+}
+
+function setOrder(var orderType, var price, var quantity, var condition, var conditionPrice)
+{
+	if (quantity == 0 || price == 0)
+	{
+		return 0;
+	}
+	var order = new_object("hash");
+
+	order["operation"] = orderType;
+	order["quantity"] = quantity;
+	if (isForts > 0)
+	{
+		order["usecredit"] = false;
+	}
+	else
+	{
+		order["usecredit"] = true;
+	}
+	order["client"] = clientId;
+	order["price"] = price;
+	order["validbefore"] = TILL_CANCELED;
+	if (condition != 0 && conditionPrice != 0)
+	{
+	    order["condition"] = condition;
+	    order["condvalue"] = conditionPrice;
+	}
+
+	return trade_action::transactMultiple(order);
+}
+
+function updateOrders()
+{
+	if (isForts >0)
+	{
+		CancelAllOrderCustom();
+	}
+	else
+	{
+		trade_action::cancelBuyOrders();
+		trade_action::cancelSellOrders();
+		trade_action::cancelAllOrders();
+	}
+	var activationPrice = 0;
+	if (getSecBalanceWrapper() > 0)
+	{
+		activationPrice = lowPoint;
+		var quantity = calcQuantity(lowPoint);
+		enterPrice = lowPoint - (getSecPriceStep()* priceStepCount);
+		curShortOrder = setOrder(OP_SELL, enterPrice, quantity + abs(getSecBalanceWrapper()), COND_ASK_OR_LAST, activationPrice );
+		if (not curShortOrder) 
+		{
+			WriteLogMessage(getLastErrorMessage());
+		}
+		else
+		{
+			WriteLogMessage("Created new SELL order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice);
+		}
+	}
+	if (getSecBalanceWrapper() < 0)
+	{			
+		activationPrice = highPoint ;
+		enterPrice = highPoint + (getSecPriceStep()* priceStepCount);
+		var quantity = calcQuantity(lowPoint);
+		curLongOrder = setOrder(OP_BUY, enterPrice, quantity  + abs(getSecBalanceWrapper()) , COND_BID_OR_LAST, activationPrice);
+		if (not curLongOrder) 
+		{
+			WriteLogMessage(getLastErrorMessage());
+		}
+		else
+		{
+			WriteLogMessage("Created new BUY order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice );
+		}
+	}
+	if(getSecBalanceWrapper() == 0)
+	{
+		activationPrice = lowPoint;
+		var quantity = calcQuantity(lowPoint);
+		enterPrice = lowPoint - (getSecPriceStep()* priceStepCount);
+		curShortOrder = setOrder(OP_SELL, enterPrice, quantity + abs(getSecBalanceWrapper()), COND_ASK_OR_LAST, activationPrice );
+		if (not curShortOrder) 
+		{
+			WriteLogMessage(getLastErrorMessage());
+		}
+		else
+		{
+			WriteLogMessage("Created new SELL order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice);
+		}
+		
+		activationPrice = highPoint ;
+		enterPrice = highPoint + (getSecPriceStep()* priceStepCount);
+		quantity = calcQuantity(lowPoint);
+		curLongOrder = setOrder(OP_BUY, enterPrice, quantity  + abs(getSecBalanceWrapper()) , COND_BID_OR_LAST, activationPrice);
+		if (not curLongOrder) 
+		{
+			WriteLogMessage(getLastErrorMessage());
+		}
+		else
+		{
+			WriteLogMessage("Created new BUY order for overturn, price: " + enterPrice + "| Activation price: " + activationPrice );
+		}
+	}
+}
+
+function onOrder(var id)
+{
+	if (getHour(getServerTime()) == 9 && getMinute(getServerTime()) < 58)
+	{
+		return;
+	}
+	var order = getOrder(id);
+	if (order["client"] != clientId)
+	{
+		return;
+	}
+	if (order["status"] == OS_MATCHED)
+	{		
+		requestFORTSPositions(clientId);
+		WriteLogMessage("New Forst Position from CurrentPos :" + fortsPositionSize);
+		updateOrders();		
+	}
+}
+
+function onTrade(var id) 
+{
+	var trade = getTrade(id);
+	if (trade["client"] != clientId)
+	{
+		return;
+	}
+	if (isForts > 0 )
+	{
+		fortsPositionSize = trade["currentpos"];
+	}
+}
+
+function getMin(var per)
+{	
+	var i = per * -1;
+	var result = low[i];
+	while(i < 0)
+	{
+		if(result > low[i])
+		{
+			result = low[i];
+		}
+		i = i + 1;
+	}
+	return result;
+}
+
+function getMax(var per)
+{
+	var i = per * -1;
+	var result = high[i];
+	while(i < 0)
+	{
+		if(result < high[i])
+		{
+			result = high[i];
+		}
+		i= i + 1;
+	}
+	return result;
+}
+
+function calc()
+{
+	if(count > period)
+	{
+		line[0] = getMax(period);
+		line[1] = getMin(period);	
+		lowPoint = line[1];
+		highPoint = line[0];
+	}
+    count = count + 1;	
+}
+
+		
+	//if(line[0] != line[0][-1] || line[1] != line[1][-1]
+	//	updateOrders();
+
+// BUTTONS FOR TESTING //
+
+//Shift + 1
+function onKeyDown(var key)
+{ 
+  if (key == chr2num("1") and isKeyPressed(KEY_LSHIFT))
+  {
+     updateOrders();	  
+  }
+}
