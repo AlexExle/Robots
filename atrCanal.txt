@@ -34,6 +34,8 @@ static lowPoint;
 
 static isUpdated = 0;
 
+static isMoneyUpdated = 0;
+
 static highPoint;
 
 static curStopOrder;
@@ -392,6 +394,12 @@ function calc()
 		line[2] = currentPoint - line[4]*multiplier;
 	}
 	
+	if (getHour(getServerTime()) == 23 && getMinute(getServerTime()) == 45 && isMoneyUpdated == 0)
+	{
+		requestFORTSPositions(clientId);	
+		isMoneyUpdated = 1;
+	}
+	
 	if (getHour(getServerTime()) == 23 && getMinute(getServerTime()) == 49 && isUpdated == 0)
 	{
 		updateOrders();
@@ -403,24 +411,29 @@ function calc()
 function onNewCandle() 
 {		
 	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == 0 && !HasActiveOrders())
-	{
+	{		
 		updateOrders();
+		requestFORTSPositions(clientId);	
 	}
 	if(getHour(getCandleTime()) == 14 && getMinute(getCandleTime()) == 0 && !HasActiveOrders())
 	{
 		updateOrders();
+		requestFORTSPositions(clientId);	
 	}
 	if(getHour(getCandleTime()) == 16 && getMinute(getCandleTime()) == 0 && !HasActiveOrders())
 	{
 		updateOrders();
+		requestFORTSPositions(clientId);	
 	}
 	if(getHour(getCandleTime()) == 18 && getMinute(getCandleTime()) == 0 && !HasActiveOrders())
 	{
 		updateOrders();
+		requestFORTSPositions(clientId);	
 	}
 	if(getHour(getCandleTime()) == 20 && getMinute(getCandleTime()) == 0 && !HasActiveOrders())
 	{
 		updateOrders();
+		requestFORTSPositions(clientId);	
 	}
 }
 
