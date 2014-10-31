@@ -1,11 +1,12 @@
 require "QL"
 require 'luaxml'
-
 VERSION='0.1'
-log='full_BB.log'
-set_path='settings.xml'
+
 is_run=false
 
+--[[Robot Settings]]--
+set_path='settings.xml'
+log='full_BB.log'
 security = ""
 indicatorId = ""
 quantityOfPos = 0
@@ -14,6 +15,7 @@ clientcode = ""
 account = ""
 t = {}
 
+robotState = {"inPosition","inEntering","waitingOrderActivation"}
 
 empty_str = [[<table>
 				<security value="SBER" />
@@ -52,7 +54,7 @@ function OnInitDo()
 	priceSlippageStep = tonumber(file:find("priceSlippageStep").value)
 	clientcode = tonumber(file:find("clientcode").value)
 	account = tonumber(file:find("account").value)
-	
+
 	toLog(log,"Settings loaded")
 
 	t=QTable:new()
@@ -106,14 +108,14 @@ end
 
 function main()
 	is_run=OnInitDo()
-	
+
 	local candlesCount = getNumCandles(linesCount) 	-- получаем количество свечек на графике
 	local linesCount = getLinesCount(indicatorId) 	-- получаем количество линий у графика
 	toLog(log,"Candles : " .. candlesCount)
     toLog(log,"Lines :" .. linesCount)
 	message("total ".. candlesCount .. " candles in " ..linesCount .. " lines", 3)
     while is_run do
-	
+
         sleep(50)
     end;
 end
