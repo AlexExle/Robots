@@ -402,9 +402,13 @@ function calc()
     count = count + 1;	
 }
 
+function onNewCandle() 
+{
+	if( (getSecBalanceWrapper() < 0 && line[0] != line[0][-1]) || (line[1] != line[1][-1] && getSecBalanceWrapper() > 0))
+	updateOrders();
+}
 		
-	//if(line[0] != line[0][-1] || line[1] != line[1][-1]
-	//	updateOrders();
+	//
 
 // BUTTONS FOR TESTING //
 
