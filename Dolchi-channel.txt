@@ -148,7 +148,7 @@ function HasActiveWatchingOrders()
 function init()
 {	
 	file = new_object("file");
-	file.waopen("atr_cannal_log.txt");
+	file.waopen("dolchi_channel_log.txt");
 	secName = GetSecName();
 	setClient(clientId);
 	
@@ -220,8 +220,8 @@ function getSecLotSize()
 function calcQuantity(var price)
 {
      WriteLogMessage("freeMoney " + freeMoney + " risk " + risk + " getSecLotSize " + getSecLotSize() + " goPrice " + goPrice );
-	WriteLogMessage("Calculated quantity for order: " + floor((freeMoney * risk)/(highPoint - lowPoint)) );
-	return floor((freeMoney * risk * 100)/(highPoint - lowPoint));
+	WriteLogMessage("Calculated quantity for order: " + floor((freeMoney * risk)/((highPoint - lowPoint)* 100)) );
+	return floor((freeMoney * risk)/((highPoint - lowPoint) * 100));
 	
 }
 
@@ -402,9 +402,19 @@ function calc()
     count = count + 1;	
 }
 
+function onNewCandle() 
+{
+	if( (getSecBalanceWrapper() < 0 && line[0] != line[0][-1]) || (line[1] != line[1][-1] && getSecBalanceWrapper() > 0))
+	{
+		updateOrders();
+	}
+	if (getSecBalanceWrapper() == 0 &&(line[0] != line[0][-1] || line[1] != line[1][-1]))
+	{
+		updateOrders();
+	}
+}
 		
-	//if(line[0] != line[0][-1] || line[1] != line[1][-1]
-	//	updateOrders();
+	//
 
 // BUTTONS FOR TESTING //
 
