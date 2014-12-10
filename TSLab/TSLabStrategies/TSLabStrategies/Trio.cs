@@ -32,7 +32,7 @@ namespace TSLabStrategies
             int stopLoss = StopLoss;
 
             int firstValidValue = 0; // Первое значение свечки при которой существуют все индикаторы
-             
+
             IList<double> ema = ctx.GetData("EMA", new[] { period.ToString() }, () => Series.EMA(sec.ClosePrices, period));
 
             bool signalBuy = false, signalShort = false; // Сигналы на вход в длинную и короткую позиции
@@ -47,53 +47,54 @@ namespace TSLabStrategies
 
             // Отрисовка PC
             pricePane.AddList("EMA", ema, ListStyles.LINE, 0x0000a0, LineStyles.DOT, PaneSides.RIGHT);
-            
+
             for (int bar = firstValidValue; bar < sec.Bars.Count; bar++)
             {
-                signalBuy = sec.Bars[bar].Open > ema[bar];// && sec.Bars[bar].Date.Hour == 13 && sec.Bars[bar].Date.Minute == 55;
-                signalShort = sec.Bars[bar].Open < ema[bar];// && sec.Bars[bar].Date.Hour == 12 && sec.Bars[bar].Date.Minute == 55;
+                signalBuy = sec.Bars[bar].Open > ema[bar] && sec.Bars[bar].Date.Hour == 12 && sec.Bars[bar].Date.Minute == 55;
+                signalShort = sec.Bars[bar].Open < ema[bar] && sec.Bars[bar].Date.Hour == 11 && sec.Bars[bar].Date.Minute == 55;
 
                 LastActivePosition = sec.Positions.GetLastPositionActive(bar);// получить ссылку на последнию позицию
-                
+
                 if (LastActivePosition != null)//if (IsLastPositionActive) //если позиция есть:
                 {
                     if (LastActivePosition.IsLong) //если позиция длинная
                     {
+                        if (signalShort)
+                        {
+                            LastActivePosition.CloseAtMarket(bar + 1, "exit by market long");
+                        }
 
                         LastActivePosition.CloseAtStop(bar + 1, LastActivePosition.EntryPrice - stopLoss, "stop Long");
-                        LastActivePosition.CloseAtProfit(bar + 1, LastActivePosition.EntryPrice + takeProfit, "take Long");  
+                        LastActivePosition.CloseAtProfit(bar + 1, LastActivePosition.EntryPrice + takeProfit, "take Long");
                     }
                     else //если позиция короткая
                     {
+                        if (signalBuy)
+                        {
+                            LastActivePosition.CloseAtMarket(bar + 1, "exit by market short");
+                        }
                         LastActivePosition.CloseAtStop(bar + 1, LastActivePosition.EntryPrice + stopLoss, "stop Short");
-                        LastActivePosition.CloseAtProfit(bar + 1, LastActivePosition.EntryPrice - takeProfit, "take Short");              
+                        LastActivePosition.CloseAtProfit(bar + 1, LastActivePosition.EntryPrice - takeProfit, "take Short");
                     }
                 }
 
+
                 if (LastActivePosition == null)
                 {
-
                     if (signalBuy)
                     {
-                       
-                        double orderEntry = sec.Bars[bar].Close;                    
-                        // int kontraktBuy = 1; // если хотим торговать одним контрактом                       
+                        double orderEntry = sec.Bars[bar].Close;                      
                         sec.Positions.BuyAtPrice(bar + 1, 1, orderEntry, "Buy");
-
 
                     }
                     else if (signalShort)
                     {
-                        
-                        double orderEntry = sec.Bars[bar].Close;
-                        // int kontraktShort = 1;                
+                        double orderEntry = sec.Bars[bar].Close;               
                         sec.Positions.SellAtPrice(bar + 1, 1, orderEntry, "Sell");
-
                     }
-
                 }
-              
-           }
+
+            }
         }
     }
 }
