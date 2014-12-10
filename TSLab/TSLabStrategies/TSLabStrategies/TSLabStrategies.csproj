@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ATRChannel.cs" />
+    <Compile Include="DonchianChannel.cs" />
     <Compile Include="Lustra.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Stairway.cs" />
