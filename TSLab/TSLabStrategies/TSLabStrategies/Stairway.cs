@@ -24,7 +24,7 @@ namespace TSLabStrategies
         }
 
         int posSizer = 1;
-
+        int baseSize = 1;
         public void Execute(IContext ctx, ISecurity sec)
         {
 
@@ -47,17 +47,20 @@ namespace TSLabStrategies
                 signalShort = sec.Bars[bar].Low < LowLevel;
 
                 LastActivePosition = sec.Positions.GetLastPositionActive(bar);// получить ссылку на последнию позицию
+               
                 //sec.Positions.GetLastPositionClosed
                 if (LastActivePosition != null)//if (IsLastPositionActive) //если позиция есть:
                 {
                     if (LastActivePosition.IsLong)
                     {
-
-                        LastActivePosition.CloseAtStop(bar + posSizer, LowLevel, "stop Long");
+                        if (posSizer > baseSize)
+                        {
+                            LastActivePosition.CloseAtStop(bar + 1, LowLevel, "stop Long");
+                        }
                     }
                     else
                     {
-                        LastActivePosition.CloseAtStop(bar + posSizer, HighLevel, "stop Short");
+                        LastActivePosition.CloseAtStop(bar + 1, HighLevel, "stop Short");
                     }
                 }
 
@@ -70,7 +73,7 @@ namespace TSLabStrategies
                     }
                     else
                     {
-
+                        
                     }
                 }
 
