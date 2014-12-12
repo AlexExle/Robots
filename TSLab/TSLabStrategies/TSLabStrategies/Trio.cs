@@ -64,9 +64,10 @@ namespace TSLabStrategies
                             LastActivePosition.CloseAtMarket(bar + 1, "exit by market long");
                         }
 
-                       
-                        LastActivePosition.CloseAtStop(bar + 1, LastActivePosition.EntryPrice - stopLoss, "stop Long");
-                        LastActivePosition.CloseAtProfit(bar + 1, LastActivePosition.EntryPrice + takeProfit, "take Long");
+                        if (sec.Bars[bar].High < LastActivePosition.EntryPrice + takeProfit)
+                            LastActivePosition.CloseAtStop(bar + 1, LastActivePosition.EntryPrice - stopLoss, "stop Long");
+                        else
+                            LastActivePosition.CloseAtProfit(bar + 1, LastActivePosition.EntryPrice + takeProfit, "take Long");
                     }
                     else //если позиция короткая
                     {
@@ -74,7 +75,10 @@ namespace TSLabStrategies
                         {
                             LastActivePosition.CloseAtMarket(bar + 1, "exit by market short");
                         }
+
+                        if (sec.Bars[bar].Low > LastActivePosition.EntryPrice - takeProfit)
                         LastActivePosition.CloseAtStop(bar + 1, LastActivePosition.EntryPrice + stopLoss, "stop Short");
+                        else
                         LastActivePosition.CloseAtProfit(bar + 1, LastActivePosition.EntryPrice - takeProfit, "take Short");
                     }
                 }
