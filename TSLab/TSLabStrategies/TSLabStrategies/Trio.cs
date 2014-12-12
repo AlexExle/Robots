@@ -64,6 +64,7 @@ namespace TSLabStrategies
                             LastActivePosition.CloseAtMarket(bar + 1, "exit by market long");
                         }
 
+                       
                         LastActivePosition.CloseAtStop(bar + 1, LastActivePosition.EntryPrice - stopLoss, "stop Long");
                         LastActivePosition.CloseAtProfit(bar + 1, LastActivePosition.EntryPrice + takeProfit, "take Long");
                     }

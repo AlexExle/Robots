@@ -13,6 +13,7 @@ namespace TSLabStrategies
     public class Stairway : IExternalScript
     {
         public IPosition LastActivePosition = null;
+        public IPosition LastClosedPosition = null;
 
         OptimProperty Offset;
         OptimProperty StepPar;
@@ -40,40 +41,60 @@ namespace TSLabStrategies
 
             bool signalBuy = false; bool signalShort = false;
           
+          
+
             for (int bar = firstValidValue; bar < sec.Bars.Count; bar++)
             {
 
                 signalBuy = sec.Bars[bar].High > HighLevel;
                 signalShort = sec.Bars[bar].Low < LowLevel;
 
+                LastClosedPosition  = sec.Positions.GetLastPositionClosed(bar);
                 LastActivePosition = sec.Positions.GetLastPositionActive(bar);// получить ссылку на последнию позицию
-               
-                //sec.Positions.GetLastPositionClosed
-                if (LastActivePosition != null)//if (IsLastPositionActive) //если позиция есть:
+                               
+                if (LastActivePosition != null)
                 {
-                    if (LastActivePosition.IsLong)
+                    if (LastActivePosition.Shares > baseSize)
                     {
-                        if (posSizer > baseSize)
+                        if (signalBuy && LastActivePosition.IsLong)
                         {
-                            LastActivePosition.CloseAtStop(bar + 1, LowLevel, "stop Long");
+                            LastActivePosition.CloseAtMarket(bar, "CloseDouble");
+                            sec.Positions.BuyAtPrice(bar + 1, baseSize, HighLevel, "SingleReBuy");
                         }
+                        if (signalShort && LastActivePosition.IsShort)
+                        {
+                            LastActivePosition.CloseAtMarket(bar, "CloseDouble");
+                            sec.Positions.SellAtPrice(bar + 1, baseSize, HighLevel, "SingleReSell");
+                        }
+                    }
+                    if (LastActivePosition.IsLong)
+                    {                      
+                            LastActivePosition.CloseAtStop(bar + 1, LowLevel, "StopLong");
                     }
                     else
                     {
-                        LastActivePosition.CloseAtStop(bar + 1, HighLevel, "stop Short");
+                        LastActivePosition.CloseAtStop(bar + 1, HighLevel, "StopShort");
                     }
                 }
 
                 if (LastActivePosition == null)
                 {
-                    if (sec.Positions.GetLastPositionClosed(bar) == null)
+
+                    if (LastClosedPosition != null && LastClosedPosition.Shares == baseSize)
                     {
-                        sec.Positions.BuyIfGreater(bar + 1, posSizer, HighLevel, "Buy");
-                        sec.Positions.SellIfLess(bar + 1, posSizer, LowLevel, "Sell");
+                        if (signalBuy && LastClosedPosition.IsShort)
+                            sec.Positions.BuyAtPrice(bar + 1, baseSize * 2, HighLevel, "DoubleBuy");
+                        else
+                            if (signalShort && LastClosedPosition.IsLong)
+                                sec.Positions.SellAtPrice(bar + 1, baseSize * 2, LowLevel, "DoubleSell");
                     }
                     else
                     {
-                        
+                        if (signalBuy)
+                            sec.Positions.BuyAtPrice(bar + 1, baseSize , HighLevel, "SingleBuy");
+                        else
+                        if (signalShort)
+                            sec.Positions.SellAtPrice(bar + 1, baseSize , LowLevel, "SingleSell");
                     }
                 }
 
