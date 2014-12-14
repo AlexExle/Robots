@@ -15,7 +15,7 @@ namespace MMG2015.TSLab.Scripts
         /// <param name="bar">Номер бара</param>
         /// <returns></returns>
         public static double CurrentBalance(this ISecurity sec, int bar)
-        {
+        { 
             ISecurityRt rtSecurity = sec as ISecurityRt; // создаем объект для доступа к информации реальной торговли
 
             if (rtSecurity != null)
@@ -67,7 +67,13 @@ namespace MMG2015.TSLab.Scripts
         /// <returns></returns>
         public static int PercentOfEquityShares(this ISecurity sec, int bar, double money)
         {
-            return (int)Math.Floor(money / (sec.ClosePrices[bar] * sec.LotSize));
+            ISecurityRt rtSecurity = sec as ISecurityRt; // создаем объект для доступа к информации реальной торговли
+            if (rtSecurity != null && rtSecurity.FinInfo.BuyDeposit.HasValue)
+            {
+                return (int)Math.Floor(money / (rtSecurity.FinInfo.BuyDeposit.Value * sec.LotSize));                       
+            }
+            else
+                return (int)Math.Floor(money / (sec.ClosePrices[bar] * sec.LotSize));
         }
     }
 }

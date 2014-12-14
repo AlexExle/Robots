@@ -7,6 +7,8 @@ using TSLab.Script;
 using TSLab.Script.Handlers; // для работы с индикаторими и обработчиками
 using TSLab.Script.Helpers; // помошники
 using TSLab.Script.Optimization; // для оптимизации
+using MMG2015.TSLab.Scripts; 
+
 
 namespace TSLabStrategies
 {
@@ -16,11 +18,14 @@ namespace TSLabStrategies
 
         public OptimProperty period;
         public OptimProperty multiplier;
+        public OptimProperty PercentOEquity;
+
         private string[] timesToUpdateLeveles = { "23:45" };
         public ATRChannel()
         {
             period = new OptimProperty(400, 50, 800, 10);
             multiplier = new OptimProperty(2, 0.5, 4, 0.1);
+            PercentOEquity = new OptimProperty(30, 5, 50, 5);
         }
 
         public void Execute(IContext ctx, ISecurity sec)
@@ -74,11 +79,13 @@ namespace TSLabStrategies
                         
                         if (LastActivePosition == null)
                         {
+
+                            int shares = Math.Max(1, sec.PercentOfEquityShares(bar, sec.CurrentBalance(bar) * PercentOEquity.Value / 100));
                             //if (signalBuy)
-                            sec.Positions.BuyIfGreater(bar + 1, 1, highLevelSeries2[bar], "Buy");
+                            sec.Positions.BuyIfGreater(bar + 1, shares, highLevelSeries2[bar], "Buy");
                           
                            // if(signalShort)
-                            sec.Positions.SellIfLess(bar + 1, 1, lowLevelSeries2[bar], "Sell");
+                            sec.Positions.SellIfLess(bar + 1, shares, lowLevelSeries2[bar], "Sell");
                         }
                       
                     }

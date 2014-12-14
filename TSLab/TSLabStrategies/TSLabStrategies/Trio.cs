@@ -7,6 +7,8 @@ using TSLab.Script;
 using TSLab.Script.Handlers; // для работы с индикаторими и обработчиками
 using TSLab.Script.Helpers; // помошники
 using TSLab.Script.Optimization; // для оптимизации
+using TSLab.Script.Realtime;
+using MMG2015.TSLab.Scripts; 
 
 namespace TSLabStrategies
 {
@@ -17,12 +19,14 @@ namespace TSLabStrategies
         public OptimProperty EMAPeriod;
         public OptimProperty TakeProfit;
         public OptimProperty StopLoss;
+        public OptimProperty PercentOEquity;
 
         public Trio()
         {
             EMAPeriod = new OptimProperty(300, 100, 1000, 25);
             TakeProfit = new OptimProperty(600, 300, 1500, 50);
             StopLoss = new OptimProperty(100, 100, 500, 50);
+            PercentOEquity = new OptimProperty(30, 5, 50, 5);
         }
 
         public void Execute(IContext ctx, ISecurity sec)
@@ -32,7 +36,7 @@ namespace TSLabStrategies
             int stopLoss = StopLoss;
 
             int firstValidValue = 0; // Первое значение свечки при которой существуют все индикаторы
-
+           
             IList<double> ema = ctx.GetData("EMA", new[] { period.ToString() }, () => Series.EMA(sec.ClosePrices, period));
 
             bool signalBuy = false, signalShort = false; // Сигналы на вход в длинную и короткую позиции
@@ -86,16 +90,17 @@ namespace TSLabStrategies
 
                 if (LastActivePosition == null)
                 {
+                    int shares = Math.Max(1, sec.PercentOfEquityShares(bar, sec.CurrentBalance(bar) * PercentOEquity.Value / 100));
                     if (signalBuy)
                     {
-                        double orderEntry = sec.Bars[bar].Close;                      
-                        sec.Positions.BuyAtPrice(bar + 1, 1, orderEntry, "Buy");
+                        double orderEntry = sec.Bars[bar].Close;
+                        sec.Positions.BuyAtPrice(bar + 1, shares, orderEntry, "Buy");
 
                     }
                     else if (signalShort)
                     {
                         double orderEntry = sec.Bars[bar].Close;               
-                        sec.Positions.SellAtPrice(bar + 1, 1, orderEntry, "Sell");
+                        sec.Positions.SellAtPrice(bar + 1, shares, orderEntry, "Sell");
                     }
                 }
 

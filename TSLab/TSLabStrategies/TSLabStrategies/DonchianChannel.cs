@@ -5,7 +5,7 @@ using TSLab.Script; // для работы с ТС в TSL
 using TSLab.Script.Handlers; // для работы с индикаторими и обработчиками
 using TSLab.Script.Helpers; // помошники
 using TSLab.Script.Optimization; // для оптимизации
-
+using MMG2015.TSLab.Scripts;
 
 
 namespace MasterGroop2014.TSLab.Strategies
@@ -15,7 +15,8 @@ namespace MasterGroop2014.TSLab.Strategies
         public IPosition LastActivePosition = null;
 
         public OptimProperty _period = new OptimProperty(100, 10, 800, 10);//задаем параметры для оптимизации
-
+        public OptimProperty RiskPercent = new OptimProperty(30, 5, 50, 5);
+      
         public virtual void Execute(IContext ctx, ISecurity symbol) // IContext ctx - источник данных,ISecurity symbol - фин инструмент и инф. о нем
         {
             int period = _period; //Определяем период канала
@@ -91,11 +92,13 @@ namespace MasterGroop2014.TSLab.Strategies
                 }
                 else //если позиции нет:
                 {
-                    int kontraktCount = 1;
+                    int shares = Math.Max(1, symbol.MaxPercentRiskShares(symbol.CurrentBalance(bar), highLevel[bar], lowLevel[bar]) * RiskPercent/100);
+                    
+                     //ctx.Log("Расчетное кол-во контрактов для входа {0}. Процент от суммы : {1}, Текущ
 
-                    symbol.Positions.BuyIfGreater(bar + 1, kontraktCount, highLevel[bar], "Buy");
+                    symbol.Positions.BuyIfGreater(bar + 1, shares, highLevel[bar], "Buy");
 
-                    symbol.Positions.SellIfLess(bar + 1, kontraktCount, lowLevel[bar], "Sell");
+                    symbol.Positions.SellIfLess(bar + 1, shares, lowLevel[bar], "Sell");
                 }
             }
             #endregion
