@@ -38,17 +38,17 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="TSLab.DataSource, Version=1.2.17.59, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\..\..\Program Files\TSLab 1.2\TSLab.DataSource.dll</HintPath>
+    <Reference Include="TSLab.DataSource">
+      <HintPath>..\..\Lib\TSLab.DataSource.dll</HintPath>
     </Reference>
     <Reference Include="TSLab.Script">
-      <HintPath>..\..\..\..\..\..\..\..\..\Program Files\TSLab 1.2\TSLab.Script.dll</HintPath>
+      <HintPath>..\..\Lib\TSLab.Script.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ATRChannel.cs" />
     <Compile Include="DonchianChannel.cs" />
+    <Compile Include="DoubleDonchian.cs" />
     <Compile Include="DonVDV.cs" />
     <Compile Include="Lustra.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

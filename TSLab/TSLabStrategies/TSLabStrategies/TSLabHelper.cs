@@ -68,6 +68,7 @@ namespace MMG2015.TSLab.Scripts
         public static int PercentOfEquityShares(this ISecurity sec, int bar, double money)
         {
             ISecurityRt rtSecurity = sec as ISecurityRt; // создаем объект для доступа к информации реальной торговли
+            //пытаемся получить инфу о ГО, если нет, считаем как обычно
             if (rtSecurity != null && rtSecurity.FinInfo.BuyDeposit.HasValue)
             {
                 return (int)Math.Floor(money / (rtSecurity.FinInfo.BuyDeposit.Value * sec.LotSize));                       
