@@ -127,12 +127,10 @@ namespace MMG2015.TSLab.Scripts
 				return;
 
 			// Создаём график скриптом
-			IPane pane = ctx.CreatePane("График", 75, false);
-			Color color = new Color(System.Drawing.Color.Navy.ToArgb());
-			pane.AddList(sec.ToString(), sec, CandleStyles.BAR_CANDLE, color, PaneSides.RIGHT);
+            IPane pane = ctx.First;
 
 			// Отрисовка PC
-			color = new Color(System.Drawing.Color.Blue.ToArgb());
+            Color color = new Color(System.Drawing.Color.Blue.ToArgb());
 			IGraphList  list = pane.AddList(string.Format("Highest({0})",ChanelPeriod), highLevel, ListStyles.LINE, color, LineStyles.SOLID, PaneSides.RIGHT);
 			list.Thickness = 1;
 
