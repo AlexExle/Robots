@@ -90,10 +90,10 @@ namespace TSLabStrategies
                     }
                     else
                     {
-                        if (signalBuy)
+                        //if (signalBuy)
                             sec.Positions.BuyAtPrice(bar + 1, baseSize , HighLevel, "SingleBuy");
-                        else
-                        if (signalShort)
+                       /// else
+                        //if (signalShort)
                             sec.Positions.SellAtPrice(bar + 1, baseSize , LowLevel, "SingleSell");
                     }
                 }
@@ -119,7 +119,7 @@ namespace TSLabStrategies
             }
 
             IPane pricePane = ctx.First;
-            pricePane.AddList("Stairway", stairwayIndicator, ListStyles.LINE, 0x0000a0, LineStyles.DOT, PaneSides.RIGHT);
+            //pricePane.AddList("Stairway", stairwayIndicator, ListStyles.LINE, 0x0000a0, LineStyles.DOT, PaneSides.Left);
         }
     }
 }

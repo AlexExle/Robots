@@ -44,6 +44,9 @@
     <Reference Include="TSLab.Script">
       <HintPath>..\..\Lib\TSLab.Script.dll</HintPath>
     </Reference>
+    <Reference Include="TSLab.Script.Handlers">
+      <HintPath>..\..\Lib\TSLab.Script.Handlers.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ATRChannel.cs" />
@@ -51,6 +54,8 @@
     <Compile Include="DoubleDonchian.cs" />
     <Compile Include="DonVDV.cs" />
     <Compile Include="Lustra.cs" />
+    <Compile Include="MSpinTrixVDV_PoE.cs" />
+    <Compile Include="MSStrategy1_TSLab_PoE.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Stairway.cs" />
     <Compile Include="Trio.cs" />
