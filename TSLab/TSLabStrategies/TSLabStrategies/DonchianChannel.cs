@@ -10,7 +10,7 @@ using MMG2015.TSLab.Scripts;
 
 namespace MasterGroop2014.TSLab.Strategies
 {
-    public class tslPC_1 : IExternalScript
+    public class DonchianChannel : IExternalScript
     {
         public IPosition LastActivePosition = null;
 

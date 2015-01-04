@@ -14,7 +14,7 @@ using TSLab.Script; // для работы с ТС в TSL
 using TSLab.Script.Handlers; // для работы с индикаторими и обработчиками
 using TSLab.Script.Helpers; // помошники
 using TSLab.Script.Optimization; // для оптимизации
-
+using MMG2015.TSLab.Scripts;
 
 
 namespace MasterGroop2014.TSLab.Strategies
@@ -24,13 +24,12 @@ namespace MasterGroop2014.TSLab.Strategies
         public IPosition LastActivePosition = null;
 
         public OptimProperty _period = new OptimProperty(100, 10, 800, 10);//задаем параметры для оптимизации
-
+        public OptimProperty RiskPercent = new OptimProperty(2, 2, 20, 2);
 
 
         public virtual void Execute(IContext ctx, ISecurity symbol) // IContext ctx - источник данных,ISecurity symbol - фин инструмент и инф. о нем
         {
-            const double Equity = 200000;  //тут надо поставить сумму счета
-            const double maxPercentRisk = 2.0;  //максимальный риск в одной сделке,
+            double maxPercentRisk = RiskPercent.Value;  //максимальный риск в одной сделке,
             int period = _period; //Определяем период канала
             int firstValidValue = 0; // Первое значение свечки при которой существуют все индикаторы
 
@@ -119,7 +118,7 @@ namespace MasterGroop2014.TSLab.Strategies
                     {
                         double orderTrailingStop = lowLevel[bar];
                         double orderEntry = (symbol.HighPrices[bar] + symbol.LowPrices[bar]) / 2;
-                        int kontraktBuy = (int)System.Math.Floor((Equity * maxPercentRisk / 100) / ((orderEntry - orderTrailingStop))); // просчитываем кол-во контрактов для пакупки (размера позиции)
+                        int kontraktBuy = (int)System.Math.Floor((symbol.CurrentBalance(bar) * maxPercentRisk / 100) / ((orderEntry - orderTrailingStop))); // просчитываем кол-во контрактов для пакупки (размера позиции)
                         // int kontraktBuy = 1; // если хотим торговать одним контрактом
 
 
@@ -132,7 +131,7 @@ namespace MasterGroop2014.TSLab.Strategies
                         double orderTrailingStop = highLevel[bar];
                         double orderEntry = (symbol.HighPrices[bar] + symbol.LowPrices[bar]) / 2;
                         // int kontraktShort = 1;
-                        int kontraktShort = (int)System.Math.Floor((Equity * maxPercentRisk / 100) / ((orderTrailingStop - orderEntry))); // просчитываем кол-во контрактов для продать (размера позиции)
+                        int kontraktShort = (int)System.Math.Floor((symbol.CurrentBalance(bar) * maxPercentRisk / 100) / ((orderTrailingStop - orderEntry))); // просчитываем кол-во контрактов для продать (размера позиции)
 
 
                         symbol.Positions.SellAtPrice(bar + 1, kontraktShort, orderEntry, "Sell");

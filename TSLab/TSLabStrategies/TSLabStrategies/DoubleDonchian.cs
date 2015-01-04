@@ -104,8 +104,6 @@ namespace MasterGroop2014.TSLab.Strategies
                     {
                         LastActivePosition.CloseAtStop(bar + 1, highShortLevel[bar], "Exit Short");
                     }
-
-
                 }
                 else //если позиции нет:
                 {
