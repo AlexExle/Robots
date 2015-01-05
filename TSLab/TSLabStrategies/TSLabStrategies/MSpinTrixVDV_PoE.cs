@@ -110,12 +110,12 @@ namespace MMG2015.TSLab.Scripts
 					if (position.IsLong)// Для длинной позиции
 					{
 						if (trix[bar] <= trix[bar - 1] && trix[bar-1] >= trix[bar-2])
-							position.CloseAtPrice(bar + 1, entryPrice, "Exit Long");
+							position.CloseAtStop(bar + 1, entryPrice, "Exit Long");
 					}
 					else// Для короткой позиции
 					{
 						if (trix[bar] >= trix[bar - 1] && trix[bar-1] <= trix[bar-2])
-							position.CloseAtPrice(bar + 1, entryPrice, "Exit Short");
+                            position.CloseAtStop(bar + 1, entryPrice, "Exit Short");
 					}
 				}
 
