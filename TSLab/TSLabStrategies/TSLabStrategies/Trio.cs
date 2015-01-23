@@ -54,8 +54,8 @@ namespace TSLabStrategies
 
             for (int bar = firstValidValue; bar < sec.Bars.Count; bar++)
             {
-                signalBuy = sec.Bars[bar].Open > ema[bar] && sec.Bars[bar].Date.Hour == 12 && sec.Bars[bar].Date.Minute == 55;
-                signalShort = sec.Bars[bar].Open < ema[bar] && sec.Bars[bar].Date.Hour == 11 && sec.Bars[bar].Date.Minute == 55;
+                signalBuy = sec.Bars[bar].Open > ema[bar] && sec.Bars[bar].Date.Hour == 13 && sec.Bars[bar].Date.Minute == 00;
+                signalShort = sec.Bars[bar].Open < ema[bar] && sec.Bars[bar].Date.Hour == 12 && sec.Bars[bar].Date.Minute == 00;
 
                 LastActivePosition = sec.Positions.GetLastPositionActive(bar);// получить ссылку на последнию позицию
 
