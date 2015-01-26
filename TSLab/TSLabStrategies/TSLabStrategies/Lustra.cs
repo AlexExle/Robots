@@ -40,7 +40,6 @@ namespace Amateur7.TSLab.Scripts
         public virtual void Execute(IContext ctx, ISecurity sec)
         {
             int firstValidValue = 10; // Первое значение свечки при которой существуют все индикаторы
-            double TralingStop = 0;
             // Указываем максимальное количество контрактов. Защита "От Дурака"
             const int protectingShares = 50;
 

@@ -40,9 +40,6 @@ namespace TSLabStrategies
             IList<double> ema = ctx.GetData("EMA", new[] { period.ToString() }, () => Series.EMA(sec.ClosePrices, period));
 
             bool signalBuy = false, signalShort = false; // Сигналы на вход в длинную и короткую позиции
-            double entryPrice = 0;
-            double stopPrice = 0; // Цены заявок
-            int sharesCount = 1; // кол-во контрактов
 
             firstValidValue = Math.Max(firstValidValue, period);
 
@@ -51,7 +48,6 @@ namespace TSLabStrategies
 
             // Отрисовка PC
             pricePane.AddList("EMA", ema, ListStyles.LINE, 0x0000a0, LineStyles.DOT, PaneSides.RIGHT);
-
             for (int bar = firstValidValue; bar < sec.Bars.Count; bar++)
             {
                 signalBuy = sec.Bars[bar].Open > ema[bar] && sec.Bars[bar].Date.Hour == 13 && sec.Bars[bar].Date.Minute == 00;
@@ -68,9 +64,9 @@ namespace TSLabStrategies
                             LastActivePosition.CloseAtMarket(bar + 1, "exit by market long");
                         }
 
-                        if (sec.Bars[bar].High < LastActivePosition.EntryPrice + takeProfit)
+                        if (sec.Bars[bar].Low <= LastActivePosition.EntryPrice - stopLoss)
                             LastActivePosition.CloseAtStop(bar + 1, LastActivePosition.EntryPrice - stopLoss, "stop Long");
-                        else
+                        if (sec.Bars[bar].High >= LastActivePosition.EntryPrice + takeProfit)
                             LastActivePosition.CloseAtProfit(bar + 1, LastActivePosition.EntryPrice + takeProfit, "take Long");
                     }
                     else //если позиция короткая
@@ -80,10 +76,10 @@ namespace TSLabStrategies
                             LastActivePosition.CloseAtMarket(bar + 1, "exit by market short");
                         }
 
-                        if (sec.Bars[bar].Low > LastActivePosition.EntryPrice - takeProfit)
-                        LastActivePosition.CloseAtStop(bar + 1, LastActivePosition.EntryPrice + stopLoss, "stop Short");
-                        else
-                        LastActivePosition.CloseAtProfit(bar + 1, LastActivePosition.EntryPrice - takeProfit, "take Short");
+                        if (sec.Bars[bar].High >= LastActivePosition.EntryPrice + stopLoss)
+                            LastActivePosition.CloseAtStop(bar + 1, LastActivePosition.EntryPrice + stopLoss, "stop Short");
+                        if (sec.Bars[bar].Low <= LastActivePosition.EntryPrice - takeProfit)
+                            LastActivePosition.CloseAtProfit(bar + 1, LastActivePosition.EntryPrice - takeProfit, "take Short");
                     }
                 }
 

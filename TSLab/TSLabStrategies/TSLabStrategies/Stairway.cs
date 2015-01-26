@@ -24,7 +24,6 @@ namespace TSLabStrategies
             StepPar = new OptimProperty(0, 30, 300, 10);
         }
 
-        int posSizer = 1;
         int baseSize = 1;
         public void Execute(IContext ctx, ISecurity sec)
         {

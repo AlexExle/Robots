@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ATRChannel.cs" />
+    <Compile Include="ATRFloatChannel.cs" />
     <Compile Include="ATRTrio.cs" />
     <Compile Include="DonchianChannel.cs" />
     <Compile Include="DoubleDonchian.cs" />
