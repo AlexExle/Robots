@@ -45,7 +45,7 @@ namespace TSLabStrategies
           
             bool signalBuy = false; bool signalShort = false;
             
-            for (int bar = firstValidValue; bar < sec.Bars.Count; bar++)
+            for (int bar = 0; bar < sec.Bars.Count; bar++)
             {
                 
                 LastActivePosition = sec.Positions.GetLastPositionActive(bar);// получить ссылку на последнию позицию
