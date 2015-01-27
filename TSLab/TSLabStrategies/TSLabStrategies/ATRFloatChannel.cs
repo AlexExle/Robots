@@ -11,7 +11,7 @@ using MMG2015.TSLab.Scripts;
 
 namespace TSLabStrategies
 {
-    public class ATRFloatChannel
+    public class ATRFloatChannel : IExternalScript
     {
         public IPosition LastActivePosition = null;
 
