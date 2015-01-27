@@ -60,8 +60,7 @@ namespace TSLabStrategies
                 if (bar > firstValidValue)
                 {
                     if (LastActivePosition != null)//if (IsLastPositionActive) //если позиция есть:
-                    {
-                        -uuiuny  yihhujuuuuuuuuuuuuuuuuuuuyhhhhhjmjjyh4tdd[hdcx,;,dbrhvdchujinjililaqtsrwsfxfmnjijymunjiimjhyujjijjjuj8h jnjuyjijjik7nkukjj,k9kl9oku-kuoymk
+                    {                       
                         if (LastActivePosition.IsLong)
                         {
 
