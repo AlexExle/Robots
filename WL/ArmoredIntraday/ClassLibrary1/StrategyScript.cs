@@ -15,49 +15,19 @@ namespace ClassLibrary1
     {
         #region Типы
 
-        /// <summary>
-        /// Тип входа
-        /// </summary>
         public  enum EntryType
         {
-            /// <summary>
-            /// По импульсу
-            /// </summary>
             Impulse,
-            /// <summary>
-            /// По импульсу и тренду
-            /// </summary>
             TrendImpulse,
-            /// <summary>
-            /// По тренду и откату
-            /// </summary>
             TrendPullback,
-            /// <summary>
-            /// По тренду, откату и импульсу
-            /// </summary>
             TrendPullbackImpulse
         }
 
-        /// <summary>
-        /// Тип выхода
-        /// </summary>
         public enum ExitType
         {
-            /// <summary>
-            /// Подтягиваемый стоп T/S (цена и время)
-            /// </summary>
             TrailingStop,
-            /// <summary>
-            /// Переворот SAR (без цены и времени)
-            /// </summary>
             StopAndReverse,
-            /// <summary>
-            /// Риск и доходность S/P (цена)
-            /// </summary>
             StopAndProfit,
-            /// <summary>
-            /// Временной выход Time (время)
-            /// </summary>
             Time
         }
 
@@ -106,7 +76,9 @@ namespace ClassLibrary1
             PlotStops(); // Отображать уровни, на которых были попытки выхода по S/L
             ClearDebug(); // Очистить окно отладки
             HideVolume(); // Скрыть объемы    
-            
+
+            DataSeries strikePoint = new DataSeries("Central Strike Line");
+
             #region Переменные для обслуживания позиции
                      
             bool isSignalBuy = false, isSignalShort = false; // Сигналы на вход в длинную и короткую позиции
@@ -195,7 +167,10 @@ namespace ClassLibrary1
                 }
 
                 #endregion                
+
+                strikePoint.Add(CentralSrikePoint);
             }
+            this.PlotSeries(PricePane, strikePoint, Color.Gold, LineStyle.Dashed, 2);
         }
 
         protected bool isOptionExperatinDay(int bar)
