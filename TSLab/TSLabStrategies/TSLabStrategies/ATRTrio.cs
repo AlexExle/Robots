@@ -26,7 +26,7 @@ namespace TSLabStrategies
         {
             EMAPeriod = new OptimProperty(300, 100, 1000, 25);
             ATRPeriod = new OptimProperty(400, 50, 800, 10);
-            ProfitFactor = new OptimProperty(8.5, 10, 1, 0.5);
+            ProfitFactor = new OptimProperty(8.5, 1, 10, 0.5);
             StopFactor = new OptimProperty(2, 5, 1, 0.5);
             PercentOEquity = new OptimProperty(30, 5, 50, 5);
         }
