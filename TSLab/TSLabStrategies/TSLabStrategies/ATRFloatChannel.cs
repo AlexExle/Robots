@@ -42,7 +42,7 @@ namespace TSLabStrategies
 
             IList<double> highLevelSeries2 = new List<double>();
             IList<double> lowLevelSeries2 = new List<double>();
-            calcPrice = sec.Bars[firstValidValue].Open;
+          
             bool signalBuy = false; bool signalShort = false;
             
             for (int bar = firstValidValue; bar < sec.Bars.Count; bar++)
@@ -55,6 +55,8 @@ namespace TSLabStrategies
                 {
                     calcPrice = GetLastPositionClosePrice(sec, bar);
                 }
+                else
+                    calcPrice = sec.Bars[firstValidValue].Open;
 
                 highLevelSeries2.Add((double)Math.Round((calcPrice + (atr[bar] * multiplier.Value * 2)) / 10d, 0) * 10);
                 lowLevelSeries2.Add((double)Math.Round((calcPrice - (atr[bar] * multiplier.Value * 2)) / 10d, 0) * 10);
