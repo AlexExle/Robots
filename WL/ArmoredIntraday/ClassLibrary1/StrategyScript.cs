@@ -77,7 +77,7 @@ namespace ClassLibrary1
             ClearDebug(); // Очистить окно отладки
             HideVolume(); // Скрыть объемы    
 
-            DataSeries strikePoint = new DataSeries("Central Strike Line");
+            DataSeries strikePoint = Bars.Close;
 
             #region Переменные для обслуживания позиции
                      
