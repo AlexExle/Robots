@@ -20,6 +20,8 @@ namespace TSLabStrategies
         public OptimProperty PercentOEquity;
         public OptimProperty StopPercent;
 
+        public double stopPrice = 0;
+
         public ATRFloatChannel()
         {
             period = new OptimProperty(400, 50, 800, 10);
@@ -42,11 +44,13 @@ namespace TSLabStrategies
             IList<double> lowLevelSeries2 = new List<double>();
             calcPrice = sec.Bars[firstValidValue].Open;
             bool signalBuy = false; bool signalShort = false;
-
+            
             for (int bar = firstValidValue; bar < sec.Bars.Count; bar++)
             {
                 
                 LastActivePosition = sec.Positions.GetLastPositionActive(bar);// получить ссылку на последнию позицию
+                //берем цену закрытия последней сделки для того чтобы перерисовать канал
+                //WARN: как-то нужно узнать возможна ли потеря такой информации
                 if (sec.Positions.GetLastPositionClosed(bar)!= null)
                 {
                     calcPrice = GetLastPositionClosePrice(sec, bar);
@@ -57,18 +61,29 @@ namespace TSLabStrategies
 
                 signalBuy = sec.Bars[bar].High > highLevelSeries2[bar];
                 signalShort = sec.Bars[bar].Low < lowLevelSeries2[bar];
+
                 if (bar > firstValidValue)
                 {
+
                     if (LastActivePosition != null)//if (IsLastPositionActive) //если позиция есть:
                     {                       
                         if (LastActivePosition.IsLong)
                         {
+                            if (stopPrice == 0)
+                                stopPrice = sec.Bars[bar].Close - (highLevelSeries2[bar] - lowLevelSeries2[bar]) * StopPercent/100;
+                            else
+                                stopPrice = Math.Max(stopPrice, sec.Bars[bar].Close - (highLevelSeries2[bar] - lowLevelSeries2[bar]) * StopPercent/100);
 
-                            LastActivePosition.CloseAtStop(bar + 1,CaclStopLevel(highLevelSeries2[bar] - lowLevelSeries2[bar]), "stop Long");
+                            LastActivePosition.CloseAtStop(bar + 1, stopPrice, "stop Long");
                         }
                         else
                         {
-                            LastActivePosition.CloseAtStop(bar + 1, CaclStopLevel(highLevelSeries2[bar] - lowLevelSeries2[bar]), "stop Short");
+                            if (stopPrice == 0)
+                                stopPrice = sec.Bars[bar].Close + (highLevelSeries2[bar] - lowLevelSeries2[bar]) * StopPercent/100;
+                            else
+                                stopPrice = Math.Min(stopPrice, sec.Bars[bar].Close + (highLevelSeries2[bar] - lowLevelSeries2[bar]) * StopPercent/100);
+
+                            LastActivePosition.CloseAtStop(bar + 1, stopPrice, "stop Short");
                         }
                     }
 
@@ -102,11 +117,5 @@ namespace TSLabStrategies
             else
                 return pos.ExitPrice;
         }
-
-        public double CaclStopLevel(double channelRange)
-        {
-            return this.StopPercent.Value / 100 * channelRange;
-        }
-
     }
 }
