@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Express 2012 for Windows Desktop
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArmoredIntraday", "ClassLibrary1\ArmoredIntraday.csproj", "{A24B6ECC-6D5A-4C92-90F8-AD65E5700EE2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArmoredIntraDay", "ArmoredIntraDay\ArmoredIntraDay.csproj", "{F4E1BB06-50E5-4D9E-84B2-71CC1AEC356D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,10 +9,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A24B6ECC-6D5A-4C92-90F8-AD65E5700EE2}.Debug|Any CPU.ActiveCfg = Release|Any CPU
-		{A24B6ECC-6D5A-4C92-90F8-AD65E5700EE2}.Debug|Any CPU.Build.0 = Release|Any CPU
-		{A24B6ECC-6D5A-4C92-90F8-AD65E5700EE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A24B6ECC-6D5A-4C92-90F8-AD65E5700EE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4E1BB06-50E5-4D9E-84B2-71CC1AEC356D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4E1BB06-50E5-4D9E-84B2-71CC1AEC356D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4E1BB06-50E5-4D9E-84B2-71CC1AEC356D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4E1BB06-50E5-4D9E-84B2-71CC1AEC356D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
