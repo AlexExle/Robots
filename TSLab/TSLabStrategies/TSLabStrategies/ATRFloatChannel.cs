@@ -58,8 +58,8 @@ namespace TSLabStrategies
                 else
                     calcPrice = sec.Bars[firstValidValue].Open;
 
-                highLevelSeries2.Add((double)Math.Round((calcPrice + (atr[bar] * multiplier.Value * 2)) / 10d, 0) * 10);
-                lowLevelSeries2.Add((double)Math.Round((calcPrice - (atr[bar] * multiplier.Value * 2)) / 10d, 0) * 10);
+                highLevelSeries2.Add((double)Math.Round((calcPrice + (atr[bar] * multiplier.Value * 2)) / 100d, 0) * 100);
+                lowLevelSeries2.Add((double)Math.Round((calcPrice - (atr[bar] * multiplier.Value * 2)) / 100d, 0) * 100);
 
                 signalBuy = sec.Bars[bar].High > highLevelSeries2[bar];
                 signalShort = sec.Bars[bar].Low < lowLevelSeries2[bar];
