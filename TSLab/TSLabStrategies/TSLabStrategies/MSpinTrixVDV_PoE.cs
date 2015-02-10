@@ -86,22 +86,10 @@ namespace MMG2015.TSLab.Scripts
 
 					if (signalBuy)
 					{
-						//выводим сообщение в лог
-						/*ctx.Log(
-							String.Format("Баланс: {0}; Выделено системе: {1}% - {2} руб.; Выделено для входа: {3}% - {4} р.", equity,
-										  SystemPercent.Value, summForSystem, EquityPercent, money), new Color());
-						ctx.Log(String.Format("Хочу войти в Long: {0} контрактами", sharesCount), new Color());*/
-
 						sec.Positions.BuyAtPrice(bar + 1, sharesCount, entryPrice, "Enter Long");
 					}
 					else if (signalShort)
 					{
-						//выводим сообщение в лог
-						/*ctx.Log(
-							String.Format("Баланс: {0}; Выделено системе: {1}% - {2} руб.; Выделено для входа: {3}% - {4} р.", equity,
-										  SystemPercent.Value, summForSystem, EquityPercent, money), new Color());
-						ctx.Log(String.Format("Хочу войти в Short: {0} контрактами", sharesCount), new Color());*/
-
 						sec.Positions.SellAtPrice(bar + 1, sharesCount, entryPrice, "Enter Short");
 					}
 				}
