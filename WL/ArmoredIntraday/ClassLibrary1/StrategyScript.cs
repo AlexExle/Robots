@@ -77,7 +77,7 @@ namespace ClassLibrary1
             ClearDebug(); // Очистить окно отладки
             HideVolume(); // Скрыть объемы    
 
-            DataSeries strikePoint = Bars.Close;
+            DataSeries strikePoint = new DataSeries(Bars.Close, "Strike");
 
             #region Переменные для обслуживания позиции
                      
@@ -168,9 +168,9 @@ namespace ClassLibrary1
 
                 #endregion                
 
-                strikePoint.Add(CentralSrikePoint);
+                strikePoint[bar] = CentralSrikePoint;
             }
-            this.PlotSeries(PricePane, strikePoint, Color.Gold, LineStyle.Dashed, 2);
+            this.PlotSeries(PricePane, strikePoint, Color.Gold, LineStyle.Solid, 1);
         }
 
         protected bool isOptionExperatinDay(int bar)

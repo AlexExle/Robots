@@ -7,6 +7,7 @@ using WealthLab;
 using WealthLab.Indicators;
 using System.Drawing;
 using ArmorediIntraday.Binders;
+using ArmoredIntraDay.Binders.ExitBindings;
 
 
 namespace ArmorediIntraday
@@ -44,9 +45,10 @@ namespace ArmorediIntraday
 
         #region Объявление параметров торговой системы
 
+        int maxPositionCount = 4;
         StrategyParameter _isTrend; // По тренду (1) или флэту (0)
         StrategyParameter _entryType; // Вход по импульсу (0), тренду и импульсу (1), тренду и откату (2), тренду, откату и импульсу (3)
-        StrategyParameter _exitType; // Выход по T/S (0), SAR (1), S/P (2), Time (3)
+        //StrategyParameter _exitType; // Выход по T/S (0), SAR (1), S/P (2), Time (3)
 
         #endregion
 
@@ -63,7 +65,7 @@ namespace ArmorediIntraday
 
             _isTrend = CreateParameter("Trend", 1, 0, 1, 1);
             _entryType = CreateParameter("Entry Type", 1, 0, 3, 1);
-            _exitType = CreateParameter("Exit Type", 2, 0, 3, 1);
+           // _exitType = CreateParameter("Exit Type", 2, 0, 3, 1);
 
             #endregion
         }
@@ -82,13 +84,13 @@ namespace ArmorediIntraday
             bool isSignalBuy = false, isSignalShort = false; // Сигналы на вход в длинную и короткую позиции
             EnterSignalType lastSignal = EnterSignalType.None;
             int isLong = -1;
-            bool isTrend = _isTrend.ValueInt == 1;
+            bool isTrend = _isTrend.ValueInt == 1; 
 
-            ExitType exitType = (ExitType)_exitType.ValueInt;
+            ExitType exitType = ExitType.StopAndProfit; //(ExitType)_exitType.ValueInt;
 
             //создаем инстансы стратегий через наш не до паттерн
             EnterStrategy = AEnterStrategy.CreateInstance((EntryType)_entryType.ValueInt, this);
-            ExitStrategy = AExitStrategy.CreateInstance((ExitType)_exitType.ValueInt, this, isTrend);
+            ExitStrategy = new OnlyProfit(this, isTrend);// AExitStrategy.CreateInstance((ExitType)_exitType.ValueInt, this, isTrend);
 
             #endregion
 
@@ -108,6 +110,14 @@ namespace ArmorediIntraday
                 {
                     isLong = CentralSrikePoint >= Open[bar] ? 1 : 0;
                     strikePoint[bar] = CentralSrikePoint;
+                }
+
+                if (strikePoint[bar] != strikePoint[bar - 1])
+                {
+                    foreach (var pos in ActivePositions.ToArray())
+                    {
+                        ExitAtMarket(bar, pos);
+                    }
                 }
 
                 #region Сигналы на вход в позицию и выход из нее
@@ -135,35 +145,36 @@ namespace ArmorediIntraday
                 // !! Поменял местами условие на выход и на вход и обернул в отедльные ифы, чтобы правильно работал SAR - Сначала вышли, потом на той же свечке вошли
                 if (IsLastPositionActive) // Если позиция есть
                 {
-                    //Тут уже начинают рулить стратегии на Выход
-                    ExitStrategy.RecalculateExitConditions(LastActivePosition, bar);
+                    foreach (Position pos in ActivePositions.ToArray())
+                    {
+                        //Тут уже начинают рулить стратегии на Выход
+                        ExitStrategy.RecalculateExitConditions(pos, bar);
 
-                    //функционал выхода внедрил в сами стратегии, так как они зависимы от типа.
-                    //логично было бы и функционал входа затащить в стратегию входа, но пока он независим. Как говорится, первый принцип программиста как и врача "не навреди" или "нелезь, если само работает" =)
-                    //наверное следовало бы объеденить эту функцию и предыдущую в одну.
-                    ExitStrategy.TryExit(LastActivePosition, bar, lastSignal);                  
+                        //функционал выхода внедрил в сами стратегии, так как они зависимы от типа.
+                        //логично было бы и функционал входа затащить в стратегию входа, но пока он независим. Как говорится, первый принцип программиста как и врача "не навреди" или "нелезь, если само работает" =)
+                        //наверное следовало бы объеденить эту функцию и предыдущую в одну.
+                        ExitStrategy.TryExit(pos, bar, lastSignal);
+                    }
                 }
 
                 #endregion
 
                 #region Вход в позицию
 
-                if (!IsLastPositionActive) // Если позиции нет
+                if (ActivePositions.Count <= maxPositionCount) // Если позиции нет
                 {
-                    if (isTrend) // Если торгуем по тренду
-                    {
-                        if (isSignalBuy && isLong != 0) // Если пришел сигнал на покупку и работаем с длинными позициями
-                            BuyAtMarket(bar + 1, _isTrend.ToString() + " Buy");
-                        else if (isSignalShort && isLong != 1) // Если пришел сигнал на короткую продажу и работаем с короткими позициями
-                            ShortAtMarket(bar + 1, _isTrend.ToString() + " Short");
-                    }
-                  
-                    if (!IsLastPositionActive) // Если не вошли в позицию
+                    Position newPoisiton = null;
+                    if (isSignalBuy && isLong != 0) // Если пришел сигнал на покупку и работаем с длинными позициями
+                       newPoisiton = BuyAtMarket(bar + 1, _isTrend.ToString() + " Buy");
+                    else if (isSignalShort && isLong != 1) // Если пришел сигнал на короткую продажу и работаем с короткими позициями
+                       newPoisiton = ShortAtMarket(bar + 1, _isTrend.ToString() + " Short");
+
+                    if (newPoisiton == null) // Если не вошли в позицию
                         continue; // то идем проверять условия входа на следующем баре
 
                     #region Постановка начальных T/S, S/L, T/P
 
-                    ExitStrategy.InitExitConditions(LastActivePosition, bar);              
+                    ExitStrategy.InitExitConditions(newPoisiton, bar);              
 
                     #endregion
                 }

@@ -59,6 +59,7 @@
     <Compile Include="Binders\EnterBindings\TrendPullbackImpulse.cs" />
     <Compile Include="Binders\EnterBindings\Trio.cs" />
     <Compile Include="Binders\ExitBindings\ComplexTrioExit.cs" />
+    <Compile Include="Binders\ExitBindings\OnlyProfit.cs" />
     <Compile Include="Binders\ExitBindings\StopAndProfit.cs" />
     <Compile Include="Binders\ExitBindings\StopAndReverse.cs" />
     <Compile Include="Binders\ExitBindings\TimeExit.cs" />
