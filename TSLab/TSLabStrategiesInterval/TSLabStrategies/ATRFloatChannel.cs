@@ -75,7 +75,7 @@ namespace TSLabStrategies
                                 stopPrice = sec.Bars[bar].Close - (highLevelSeries2[bar] - lowLevelSeries2[bar]) * StopPercent/100;
                             else
                                 stopPrice = Math.Max(stopPrice, sec.Bars[bar].Close - (highLevelSeries2[bar] - lowLevelSeries2[bar]) * StopPercent/100);
-
+                            stopPrice = (double)Math.Round(stopPrice / 10d, 0) * 10;
                             LastActivePosition.CloseAtStop(bar + 1, stopPrice, "stop Long");
                         }
                         else
@@ -84,7 +84,7 @@ namespace TSLabStrategies
                                 stopPrice = sec.Bars[bar].Close + (highLevelSeries2[bar] - lowLevelSeries2[bar]) * StopPercent/100;
                             else
                                 stopPrice = Math.Min(stopPrice, sec.Bars[bar].Close + (highLevelSeries2[bar] - lowLevelSeries2[bar]) * StopPercent/100);
-
+                            stopPrice = (double)Math.Round(stopPrice / 10d, 0) * 10;
                             LastActivePosition.CloseAtStop(bar + 1, stopPrice, "stop Short");
                         }
                     }
