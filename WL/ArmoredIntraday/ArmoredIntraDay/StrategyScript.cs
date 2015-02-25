@@ -110,13 +110,20 @@ namespace ArmorediIntraday
                 {
                     isLong = CentralSrikePoint >= Open[bar] ? 1 : 0;
                     strikePoint[bar] = CentralSrikePoint;
+                    if (strikePoint[bar] >= Open[bar] != strikePoint[bar - 1] >= Open[bar - 1])
+                    {
+                        foreach (var pos in ActivePositions.ToArray())
+                        {
+                            ExitAtMarket(bar+1, pos, "Exit at cross strikes");
+                        }
+                    }
                 }
 
                 if (strikePoint[bar] != strikePoint[bar - 1])
                 {
                     foreach (var pos in ActivePositions.ToArray())
                     {
-                        ExitAtMarket(bar, pos);
+                        ExitAtMarket(bar, pos, "End of Month");
                     }
                 }
 
@@ -165,9 +172,9 @@ namespace ArmorediIntraday
                 {
                     Position newPoisiton = null;
                     if (isSignalBuy && isLong != 0) // Если пришел сигнал на покупку и работаем с длинными позициями
-                       newPoisiton = BuyAtMarket(bar + 1, _isTrend.ToString() + " Buy");
+                        newPoisiton = BuyAtMarket(bar + 1, (_isTrend.ValueInt == 1 ? "Tend" : "Flat") + " Buy");
                     else if (isSignalShort && isLong != 1) // Если пришел сигнал на короткую продажу и работаем с короткими позициями
-                       newPoisiton = ShortAtMarket(bar + 1, _isTrend.ToString() + " Short");
+                        newPoisiton = ShortAtMarket(bar + 1, (_isTrend.ValueInt == 1 ? "Tend" : "Flat") + " Short");
 
                     if (newPoisiton == null) // Если не вошли в позицию
                         continue; // то идем проверять условия входа на следующем баре
