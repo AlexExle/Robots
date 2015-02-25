@@ -42,8 +42,12 @@ namespace TSLabStrategies
             int firstValidValue = 0;
           
             double calcPrice = 0;
-            
-            IList<double> atr = ctx.GetData("ATR", new[] { period.ToString() }, () => Series.AverageTrueRange(sec.Bars, period));
+
+            KandleCompresser.Interval = ComperssPeriod;
+
+            ISecurity compressedSec = KandleCompresser.Execute(sec);
+
+            IList<double> atr = ctx.GetData("ATR", new[] { period.ToString() }, () => Series.AverageTrueRange(compressedSec.Bars, period));
 
             firstValidValue = Math.Max(firstValidValue, period);
          
@@ -51,20 +55,20 @@ namespace TSLabStrategies
             IList<double> lowLevelSeries2 = new List<double>();
 
             bool signalBuy = false; bool signalShort = false;
-          
-            for (int bar = 0; bar < sec.Bars.Count; bar++)
+
+            for (int bar = 0; bar < compressedSec.Bars.Count; bar++)
             {
-                    LastActivePosition = sec.Positions.GetLastPositionActive(bar);// получить ссылку на последнию позицию
-                    if (IsDateInArray(sec.Bars[bar].Date, dates))
+                LastActivePosition = sec.Positions.GetLastPositionActive(bar);
+                if (IsDateInArray(compressedSec.Bars[bar].Date, dates))
                     {
-                        calcPrice = sec.Bars[bar].Close;
+                        calcPrice = compressedSec.Bars[bar].Close;
                     }
 
                     highLevelSeries2.Add((double)Math.Round((calcPrice + (atr[bar] * multiplier.Value * 2)) / 10d, 0)*10);
                     lowLevelSeries2.Add((double)Math.Round((calcPrice - (atr[bar] * multiplier.Value * 2)) / 10d, 0)*10);
 
-                    signalBuy = sec.Bars[bar].High > highLevelSeries2[bar];
-                    signalShort = sec.Bars[bar].Low < lowLevelSeries2[bar];
+                    signalBuy = compressedSec.Bars[bar].High > highLevelSeries2[bar];
+                    signalShort = compressedSec.Bars[bar].Low < lowLevelSeries2[bar];
                     if (bar > firstValidValue)
                     {
                         if (LastActivePosition != null)//if (IsLastPositionActive) //если позиция есть:
@@ -95,7 +99,7 @@ namespace TSLabStrategies
             }
 		        
             IPane pricePane = ctx.First;
-
+            pricePane.AddList("Compressed", compressedSec, CandleStyles.BAR_CANDLE, true, true, true, true, 0x0000a0, PaneSides.RIGHT);
             // Отрисовка PC
             pricePane.AddList("High Channel", highLevelSeries2, ListStyles.LINE, 0x0000a0, LineStyles.DOT, PaneSides.RIGHT);
             pricePane.AddList("Low Channel", lowLevelSeries2, ListStyles.LINE, 0x0000a0, LineStyles.DOT, PaneSides.RIGHT);
