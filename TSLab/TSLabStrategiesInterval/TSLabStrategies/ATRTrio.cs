@@ -34,7 +34,6 @@ namespace TSLabStrategies
         public void Execute(IContext ctx, ISecurity sec)
         {
             int period = EMAPeriod;            
-
             int firstValidValue = 0; // Первое значение свечки при которой существуют все индикаторы
            
             IList<double> ema = ctx.GetData("EMA", new[] { period.ToString() }, () => Series.EMA(sec.ClosePrices, period));
