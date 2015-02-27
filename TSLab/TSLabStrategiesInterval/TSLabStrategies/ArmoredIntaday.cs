@@ -60,7 +60,7 @@ namespace TSLabStrategies
                 {
                     foreach(IPosition activePosition in activePositions)
                     {
-                        activePosition.CloseAtMarket(bar, "ExitCrossStrike");
+                        activePosition.CloseAtMarket(bar, "ExitCrossStrike_" + activePosition.EntrySignalName);
                     }
                 }
                 else
@@ -71,17 +71,17 @@ namespace TSLabStrategies
                     {
                             if (direction == -1)
                             {
-                                sec.Positions.SellAtPrice(bar, Shares, StrikeLine + CalcPrice(activePositions.Count + i), "EnterToShort");
+                                sec.Positions.SellAtPrice(bar, Shares, StrikeLine + CalcPrice(activePositions.Count + i), "EnterToShort" + i);
                             }
                             if (direction == 1)
                             {
-                                sec.Positions.BuyAtPrice(bar, Shares, StrikeLine - CalcPrice(activePositions.Count + i), "EnterToLong");
+                                sec.Positions.BuyAtPrice(bar, Shares, StrikeLine - CalcPrice(activePositions.Count + i), "EnterToLong" + i);
                             }
                     }
 
                     foreach (IPosition activePosition in activePositions)
                     {
-                        activePosition.CloseAtPrice(bar, activePosition.EntryPrice + TakeProfitSize * (activePosition.IsLong ? 1 : -1), "ExitProfit");
+                        activePosition.CloseAtPrice(bar, activePosition.EntryPrice + TakeProfitSize * (activePosition.IsLong ? 1 : -1), "ExitProfit_" + activePosition.EntrySignalName);
                     }
                 }
 
