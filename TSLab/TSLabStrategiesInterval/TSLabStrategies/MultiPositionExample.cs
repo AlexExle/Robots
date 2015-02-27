@@ -19,6 +19,7 @@ namespace TSLabStrategies
 
         public void Execute(IContext ctx, TSLab.Script.ISecurity sec)
         {
+			KandleCompresser.Interval = 300;
             ISecurity cSec = KandleCompresser.Execute(sec);
             for (int bar = 0; bar < cSec.Bars.Count; bar++)
             {
