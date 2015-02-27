@@ -59,6 +59,7 @@
     <Compile Include="Lustra.cs" />
     <Compile Include="MSpinTrixVDV_PoE.cs" />
     <Compile Include="MSStrategy1_TSLab_PoE.cs" />
+    <Compile Include="MultiPositionExample.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Stairway.cs" />
     <Compile Include="Trio.cs" />
