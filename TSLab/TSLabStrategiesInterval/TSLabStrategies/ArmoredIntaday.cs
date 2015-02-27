@@ -71,11 +71,11 @@ namespace TSLabStrategies
                     {
                             if (direction == -1)
                             {
-                                sec.Positions.SellAtPrice(bar, Shares, StrikeLine + CalcPrice(activePositions.Count + i), "EnterToShort" + i);
+                                sec.Positions.SellAtPrice(bar, Shares, StrikeLine + CalcPrice(activePositions.Count + i), "EnterToShort" + (activePositions.Count + i));
                             }
                             if (direction == 1)
                             {
-                                sec.Positions.BuyAtPrice(bar, Shares, StrikeLine - CalcPrice(activePositions.Count + i), "EnterToLong" + i);
+                                sec.Positions.BuyAtPrice(bar, Shares, StrikeLine - CalcPrice(activePositions.Count + i), "EnterToLong" + (activePositions.Count + i));
                             }
                     }
 
