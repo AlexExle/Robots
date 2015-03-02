@@ -23,12 +23,12 @@ namespace TSLabStrategies
             ISecurity cSec = KandleCompresser.Execute(sec);
             for (int bar = 0; bar < cSec.Bars.Count; bar++)
             {
-                List<IPosition> activePositions = new List<IPosition>(cSec.Positions.GetActiveForBar(bar));
+                List<IPosition> activePositions = new List<IPosition>(sec.Positions.GetActiveForBar(bar));
 
-                cSec.Positions.SellAtPrice(bar + 1, 1, 91500, "EnterToShort1");
-                cSec.Positions.SellAtPrice(bar + 1, 1, 92500, "EnterToShort2");
-                cSec.Positions.SellAtPrice(bar + 1, 1, 93000, "EnterToShort3");
-                cSec.Positions.SellAtPrice(bar + 1, 1, 94500, "EnterToShort4");
+                sec.Positions.SellAtPrice(bar + 1, 1, 91500, "EnterToShort1");
+                sec.Positions.SellAtPrice(bar + 1, 1, 92500, "EnterToShort2");
+                sec.Positions.SellAtPrice(bar + 1, 1, 93000, "EnterToShort3");
+                sec.Positions.SellAtPrice(bar + 1, 1, 94500, "EnterToShort4");
 
                 foreach (IPosition activePosition in activePositions)
                 {
