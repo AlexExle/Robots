@@ -11,17 +11,15 @@ namespace TSLabStrategies
 {
     public class MultiPositionExample : IExternalScript
     {
-        private Compress KandleCompresser = new Compress();
-
+        
         public MultiPositionExample()
         {
         }
 
         public void Execute(IContext ctx, TSLab.Script.ISecurity sec)
         {
-			KandleCompresser.Interval = 300;
-            ISecurity cSec = KandleCompresser.Execute(sec);
-            for (int bar = 0; bar < cSec.Bars.Count; bar++)
+
+            for (int bar = 0; bar < sec.Bars.Count; bar++)
             {
                 List<IPosition> activePositions = new List<IPosition>(sec.Positions.GetActiveForBar(bar));
 
@@ -34,10 +32,7 @@ namespace TSLabStrategies
                 {
                     activePosition.CloseAtPrice(bar+1, activePosition.EntryPrice + 300 * (activePosition.IsLong ? 1 : -1), "ExitProfit_" + activePosition.EntrySignalName);
                 }
-            }
-
-            IPane pricePane = ctx.First;
-            pricePane.AddList("Compressed", cSec, CandleStyles.BAR_CANDLE, true, true, true, true, 0x0000a0, PaneSides.RIGHT);
+            }           
         }
     }
 }
