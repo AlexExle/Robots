@@ -25,14 +25,14 @@ namespace TSLabStrategies
             {
                 List<IPosition> activePositions = new List<IPosition>(cSec.Positions.GetActiveForBar(bar));
 
-                cSec.Positions.SellAtPrice(bar, 1, 90500, "EnterToShort1");
-                cSec.Positions.SellAtPrice(bar, 1, 91500, "EnterToShort2");
-                cSec.Positions.SellAtPrice(bar, 1, 92000, "EnterToShort3");
-                cSec.Positions.SellAtPrice(bar, 1, 92500, "EnterToShort4");
+                cSec.Positions.SellAtPrice(bar + 1, 1, 90500, "EnterToShort1");
+                cSec.Positions.SellAtPrice(bar + 1, 1, 91500, "EnterToShort2");
+                cSec.Positions.SellAtPrice(bar + 1, 1, 92000, "EnterToShort3");
+                cSec.Positions.SellAtPrice(bar + 1, 1, 92500, "EnterToShort4");
 
                 foreach (IPosition activePosition in activePositions)
                 {
-                    activePosition.CloseAtPrice(bar, activePosition.EntryPrice + 300 * (activePosition.IsLong ? 1 : -1), "ExitProfit_" + activePosition.EntrySignalName);
+                    activePosition.CloseAtPrice(bar+1, activePosition.EntryPrice + 300 * (activePosition.IsLong ? 1 : -1), "ExitProfit_" + activePosition.EntrySignalName);
                 }
             }
 

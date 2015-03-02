@@ -71,17 +71,17 @@ namespace TSLabStrategies
                     {
                             if (direction == -1)
                             {
-                                sec.Positions.SellAtPrice(bar, Shares, StrikeLine + CalcPrice(activePositions.Count + i), "EnterToShort" + (activePositions.Count + i));
+                                sec.Positions.SellAtPrice(bar+1, Shares, StrikeLine + CalcPrice(activePositions.Count + i), "EnterToShort" + (activePositions.Count + i));
                             }
                             if (direction == 1)
                             {
-                                sec.Positions.BuyAtPrice(bar, Shares, StrikeLine - CalcPrice(activePositions.Count + i), "EnterToLong" + (activePositions.Count + i));
+                                sec.Positions.BuyAtPrice(bar+1, Shares, StrikeLine - CalcPrice(activePositions.Count + i), "EnterToLong" + (activePositions.Count + i));
                             }
                     }
 
                     foreach (IPosition activePosition in activePositions)
                     {
-                        activePosition.CloseAtPrice(bar, activePosition.EntryPrice + TakeProfitSize * (activePosition.IsLong ? 1 : -1), "ExitProfit_" + activePosition.EntrySignalName);
+                        activePosition.CloseAtPrice(bar+1, activePosition.EntryPrice + TakeProfitSize * (activePosition.IsLong ? 1 : -1), "ExitProfit_" + activePosition.EntrySignalName);
                     }
                 }
 
