@@ -22,7 +22,6 @@ namespace TSLabStrategies
         public OptimProperty StrikeLine;
         public OptimProperty EnterPriceStep;
         public OptimProperty TakeProfitSize;
-        private Compress KandleCompresser = new Compress();
 
         public ArmoredIntaday()
         {
@@ -36,25 +35,21 @@ namespace TSLabStrategies
         public void Execute(IContext ctx, TSLab.Script.ISecurity sec)
         {
           
-            int firstValidValue = 0;       
+            int firstValidValue = 0;               
 
-            KandleCompresser.Interval = 300;
+            firstValidValue = Math.Max(firstValidValue, period);
 
-            ISecurity cSec = KandleCompresser.Execute(sec);            
-
-            firstValidValue = Math.Max(firstValidValue, period);          
-
-            for (int bar = 0; bar < cSec.Bars.Count; bar++)
+            for (int bar = 0; bar < sec.Bars.Count; bar++)
             {
                 List<IPosition> activePositions = new List<IPosition>(sec.Positions.GetActiveForBar(bar));
-                if (cSec.Bars[bar].Close > StrikeLine.Value)
+                if (sec.Bars[bar].Close > StrikeLine.Value)
                     direction = -1;
-                if (cSec.Bars[bar].Close < StrikeLine.Value)
+                if (sec.Bars[bar].Close < StrikeLine.Value)
                     direction = 1;
                 int prevDirection = 0;
-                if (cSec.Bars[bar].Close > StrikeLine.Value)
+                if (sec.Bars[bar].Close > StrikeLine.Value)
                     prevDirection = -1;
-                if (cSec.Bars[bar].Close < StrikeLine.Value)
+                if (sec.Bars[bar].Close < StrikeLine.Value)
                     prevDirection = 1;
                 if(prevDirection != 0 && prevDirection != direction)
                 {
@@ -85,11 +80,7 @@ namespace TSLabStrategies
                     }
                 }
 
-            }
-
-            IPane pricePane = ctx.First;
-            pricePane.AddList("Compressed", cSec, CandleStyles.BAR_CANDLE, true, true, true, true, 0x0000a0, PaneSides.RIGHT);      
-
+            }     
         }
 
         
