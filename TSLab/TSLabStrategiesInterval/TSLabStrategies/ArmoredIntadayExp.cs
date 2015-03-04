@@ -86,7 +86,7 @@ namespace TSLabStrategies
         
             public double CalcPrice(int positionNuber)
             {
-                return Math.Pow(2,positionNuber) * EnterPriceStep;
+                return Math.Pow(2,positionNuber-1) * EnterPriceStep;
             }
     }
 }
