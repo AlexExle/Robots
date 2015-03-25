@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Binders\AEnterStartegy.cs" />
     <Compile Include="Binders\AExitStrategy.cs" />
+    <Compile Include="Binders\EnterBindings\ExpInterval.cs" />
     <Compile Include="Binders\EnterBindings\Impulse.cs" />
     <Compile Include="Binders\EnterBindings\Pullback.cs" />
     <Compile Include="Binders\EnterBindings\StaticInterval.cs" />

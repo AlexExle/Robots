@@ -23,8 +23,9 @@ namespace ArmorediIntraday.Binders.EnterBindings
            
         }
 
-        public override EnterSignalType GenerateSignal(int bar)
+        public override EnterSignalType GenerateSignal(int bar, out double price)
         {
+            price = 0;
             if (StrategyInstance.Bars.Close[bar] > pullbackMA[bar]) // Закрытие бара выше быстрой скользящей
                 return EnterSignalType.Up;
             if (StrategyInstance.Bars.Close[bar] < pullbackMA[bar]) // Закрытие бара ниже быстрой скользящей

@@ -1,4 +1,5 @@
-﻿using ArmorediIntraday.Binders;
+﻿using ArmorediIntraday;
+using ArmorediIntraday.Binders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +11,12 @@ namespace ArmoredIntraDay.Binders.ExitBindings
 {
     public class StaticProfit : AExitStrategy
     {
-        public int staticProfit = 250;
-        public StaticProfit(WealthScript strategyInstance, bool isTrend)
-            : base(strategyInstance, isTrend)
-        { }
+        public double staticProfit = 250;
+        public StaticProfit(ArmoredIntraday strategyInstance, bool isTrend)
+            : base(strategyInstance as WealthScript, isTrend)
+        {
+            staticProfit = 1000 * strategyInstance._exitParameter.Value;
+        }
 
         public override void InitExitConditions(WealthLab.Position position, int bar)
         {

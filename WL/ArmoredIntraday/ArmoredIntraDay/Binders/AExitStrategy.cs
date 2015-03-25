@@ -7,6 +7,7 @@ using WealthLab;
 using WealthLab.Indicators;
 using System.Drawing;
 using ArmorediIntraday.Binders.ExitBindings;
+using ArmoredIntraDay.Binders.ExitBindings;
 
 
 namespace ArmorediIntraday.Binders
@@ -33,7 +34,8 @@ namespace ArmorediIntraday.Binders
         /// но будем считать это небольшим костылем :) не было времени такие мелочи вычищать.
         /// </summary>
         public DataSeries atr;
-
+        public AExitStrategy()
+        { }
         public AExitStrategy(WealthScript strategyInstance, bool isTrend)
         {
             StrategyInstance = strategyInstance;
@@ -54,14 +56,18 @@ namespace ArmorediIntraday.Binders
         {
             switch (exitType)
             {
-                case ArmoredIntraday.ExitType.TrailingStop:
+               /* case ArmoredIntraday.ExitType.TrailingStop:
                     return new TrailingStop(wlInstance, isTrend);                  
                 case ArmoredIntraday.ExitType.StopAndReverse:
                     return new StopAndReverse(wlInstance, isTrend);                  
                 case ArmoredIntraday.ExitType.StopAndProfit:
                     return new StopAndProfit(wlInstance, isTrend);                    
                 case ArmoredIntraday.ExitType.Time:
-                    return new TimeExit(wlInstance, isTrend);                    
+                    return new TimeExit(wlInstance, isTrend);  */
+                case ArmoredIntraday.ExitType.AtrProfit :
+                    return new OnlyProfit(wlInstance, isTrend);
+                case ArmoredIntraday.ExitType.StaticProfit :
+                    return new StaticProfit(wlInstance as ArmoredIntraday, isTrend);
                 default:
                     throw new NotImplementedException(exitType.ToString() + " exit strategy not implemented");       
             }

@@ -15,8 +15,9 @@ namespace ArmorediIntraday.Binders.EnterBindings
             firstValidValue = Math.Max(firstValidValue, 1); ;
         }
 
-        public override EnterSignalType GenerateSignal(int bar)
+        public override EnterSignalType GenerateSignal(int bar, out double price)
         {
+            price = 0;
             if (StrategyInstance.Bars.Close[bar] > StrategyInstance.Bars.High[bar - 1])
                 return EnterSignalType.Up;
             if (StrategyInstance.Bars.Close[bar] < StrategyInstance.Bars.Low[bar - 1])

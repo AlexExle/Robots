@@ -21,9 +21,10 @@ namespace ArmorediIntraday.Binders.EnterBindings
         }
 
 
-        public override EnterSignalType GenerateSignal(int bar)
+        public override EnterSignalType GenerateSignal(int bar, out double price)
         {
-            return trendStrategy.GenerateSignal(bar) & impulseStrategy.GenerateSignal(bar);
+            price = 0;
+            return trendStrategy.GenerateSignal(bar, out price) & impulseStrategy.GenerateSignal(bar, out price);
         }
     }
 }

@@ -25,9 +25,9 @@ namespace ArmorediIntraday.Binders.EnterBindings
             firstValidValue = Math.Max(firstValidValue, trendEma.FirstValidValue);
         }
 
-        public override EnterSignalType GenerateSignal(int bar)
+        public override EnterSignalType GenerateSignal(int bar, out double price)
         {
-
+            price = 0;
 
             if (StrategyInstance.Bars.Close[bar] > trendEma[bar] && StrategyInstance.Bars.Date[bar].Hour == 13 && StrategyInstance.Bars.Date[bar].Minute == 00) // Закрытие бара выше медленной скользящей
                 return EnterSignalType.Up;

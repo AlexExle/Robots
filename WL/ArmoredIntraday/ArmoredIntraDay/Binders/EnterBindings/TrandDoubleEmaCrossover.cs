@@ -28,8 +28,9 @@ namespace ArmorediIntraday.Binders.EnterBindings
             firstValidValue = Math.Max(firstValidValue, fastEma.FirstValidValue);
         }
 
-        public override EnterSignalType GenerateSignal(int bar)
+        public override EnterSignalType GenerateSignal(int bar, out double price)
         {
+            price = 0;
 
             if (fastEma[bar] > trendEma[bar] && fastEma[bar-1] <= trendEma[bar-1]) // Пересечение сверху вниз
                return EnterSignalType.Up;

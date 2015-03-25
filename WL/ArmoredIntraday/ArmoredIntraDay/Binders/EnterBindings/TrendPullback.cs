@@ -21,11 +21,12 @@ namespace ArmorediIntraday.Binders.EnterBindings
         }
 
 
-        public override EnterSignalType GenerateSignal(int bar)
+        public override EnterSignalType GenerateSignal(int bar, out double price )
         {
-            if (trendStrategy.GenerateSignal(bar) == EnterSignalType.Up && pullbackStrategy.GenerateSignal(bar) == EnterSignalType.Down)
+            price = 0;
+            if (trendStrategy.GenerateSignal(bar, out price) == EnterSignalType.Up && pullbackStrategy.GenerateSignal(bar, out price) == EnterSignalType.Down)
                 return EnterSignalType.Up;
-            if (trendStrategy.GenerateSignal(bar) == EnterSignalType.Down && pullbackStrategy.GenerateSignal(bar) == EnterSignalType.Up)
+            if (trendStrategy.GenerateSignal(bar, out price) == EnterSignalType.Down && pullbackStrategy.GenerateSignal(bar, out price) == EnterSignalType.Up)
                 return EnterSignalType.Down;
             return EnterSignalType.None;
         }
