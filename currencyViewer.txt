@@ -1,0 +1,71 @@
+#samewindow
+//stairway
+#line 0 nodraw
+
+extern isForts = 1;
+
+extern "string" clientId = "client";
+ 
+static secName = "";
+static file;
+static freeMoney = 0;
+static tr = 0;
+
+static waitWhileActiveOrder = 0;
+ 
+function getFreeMoney()
+{
+	if(isForts == 0)
+	{
+		return getMoneyBalance();
+	}
+	else
+	{
+		return freeMoney;
+	}
+}
+ 
+function writeToLogFile(var message)
+{
+	file.writeLn(message);
+}
+
+function GetSecName()
+{
+	var secInf = getSecInfo();
+	return secInf["secname"];
+}
+
+function GenerateTimeStamp()
+{
+	return getFormattedDateTime(getServerTime());
+}
+
+function WriteLogMessage(var message)
+{	
+	var logMsg = GenerateTimeStamp() + " - " + secName + " : " + message;
+	signal::outputMultiple(logMsg);
+	writeToLogFile(logMsg);
+}
+
+function WriteToFile(var message)
+{
+	var logMsg = GenerateTimeStamp() + " - " + secName + " : " + message;	
+	writeToLogFile(logMsg);
+}
+
+function init()
+{	
+	file = new_object("file");
+	file.waopen("currencyViewer.txt");
+	secName = GetSecName();
+	setClient(clientId);	
+	requestFORTSPositions(clientId);	
+}
+
+function onNewCandle() 
+{		
+	requestFORTSPositions(clientId);
+}
+
+
