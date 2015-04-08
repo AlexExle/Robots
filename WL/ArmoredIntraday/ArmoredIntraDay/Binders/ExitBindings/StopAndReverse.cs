@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WealthLab;
 
-namespace ArmorediIntraday.Binders.ExitBindings
+namespace ArmoredIntradaySpace.Binders.ExitBindings
 {
     public class StopAndReverse : AExitStrategy
     {
@@ -29,7 +29,7 @@ namespace ArmorediIntraday.Binders.ExitBindings
                 return false;
             if ((position.PositionType == PositionType.Long && ((lastEnterSignal == EnterSignalType.Down) && isTrend || !(lastEnterSignal == EnterSignalType.Down) && !isTrend)) || // Если находимся в длинной позиции, и пришел сигнал на вход в короткую позицию
                 (position.PositionType == PositionType.Short && ((lastEnterSignal == EnterSignalType.Up) && isTrend || !(lastEnterSignal == EnterSignalType.Up) && !isTrend))) // или находимся в короткой позиции, и пришел сигнал на вход в длинную позицию
-                return StrategyInstance.ExitAtMarket(bar + 1, position, "SAR"); // то выйти из позиции по рынку
+                return si.ExitAtMarket(bar + 1, position, "SAR"); // то выйти из позиции по рынку
             return false;
         }
     }

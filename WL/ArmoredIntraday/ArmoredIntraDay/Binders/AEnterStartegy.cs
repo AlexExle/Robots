@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 using WealthLab;
 using WealthLab.Indicators;
 using System.Drawing;
-using ArmorediIntraday.Binders.EnterBindings;
+using ArmoredIntradaySpace.Binders.EnterBindings;
 using ArmoredIntraDay.Binders.EnterBindings;
 
 
 
-namespace ArmorediIntraday.Binders
+namespace ArmoredIntradaySpace.Binders
 {
 
     public enum EnterSignalType
@@ -29,16 +29,21 @@ namespace ArmorediIntraday.Binders
 
         public static int firstValidValue = 0;
 
-        public WealthScript StrategyInstance;
+        public WealthScript si;
+
+        public ArmoredIntraday ArmoredInstanse
+        {
+            get { return si as ArmoredIntraday; }
+        }
 
         public AEnterStrategy(WealthScript strategyInstance)
         {
-            StrategyInstance = strategyInstance;
+            si = strategyInstance;
         }
 
         public abstract EnterSignalType GenerateSignal(int bar, out double price);       
 
-        public static AEnterStrategy CreateInstance(ArmorediIntraday.ArmoredIntraday.EntryType enterType, WealthScript wlInstance)
+        public static AEnterStrategy CreateInstance(ArmoredIntradaySpace.ArmoredIntraday.EntryType enterType, WealthScript wlInstance)
         {
             switch (enterType)
             {
@@ -53,7 +58,9 @@ namespace ArmorediIntraday.Binders
                 case ArmoredIntraday.EntryType.StaticImpulse:
                     return new StaticInterval(wlInstance as ArmoredIntraday);
                 case ArmoredIntraday.EntryType.ExpImpulse:
-                        return new ExpInterval(wlInstance as ArmoredIntraday);
+                    return new ExpInterval(wlInstance as ArmoredIntraday);    
+                case ArmoredIntraday.EntryType.ArmoredPullback:
+                    return new ArmoredPullback(wlInstance as ArmoredIntraday);    
                 default:
                     throw new NotImplementedException(enterType.ToString() + " not implemented");
             }

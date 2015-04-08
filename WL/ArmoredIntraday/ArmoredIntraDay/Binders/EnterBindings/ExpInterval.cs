@@ -1,4 +1,4 @@
-﻿using ArmorediIntraday;
+﻿using ArmoredIntradaySpace;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +13,7 @@ namespace ArmoredIntraDay.Binders.EnterBindings
             : base(strategy)
         {  }
 
-        protected override double CalcPrice(ArmorediIntraday.ArmoredIntraday inst)
+        protected override double CalcPrice(ArmoredIntradaySpace.ArmoredIntraday inst)
         {
             return ((inst.ActivePositions.Count + 1) * Parameter * Math.Pow(2, inst.ActivePositions.Count));         
         }

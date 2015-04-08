@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WealthLab;
 
-namespace ArmorediIntraday.Binders.EnterBindings
+namespace ArmoredIntradaySpace.Binders.EnterBindings
 {
     public class Impulse : AEnterStrategy
     {
@@ -18,9 +18,9 @@ namespace ArmorediIntraday.Binders.EnterBindings
         public override EnterSignalType GenerateSignal(int bar, out double price)
         {
             price = 0;
-            if (StrategyInstance.Bars.Close[bar] > StrategyInstance.Bars.High[bar - 1])
+            if (si.Bars.Close[bar] > si.Bars.High[bar - 1])
                 return EnterSignalType.Up;
-            if (StrategyInstance.Bars.Close[bar] < StrategyInstance.Bars.Low[bar - 1])
+            if (si.Bars.Close[bar] < si.Bars.Low[bar - 1])
                 return EnterSignalType.Down;
             return EnterSignalType.None;
         }

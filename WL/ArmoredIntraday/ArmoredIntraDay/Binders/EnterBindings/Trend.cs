@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using WealthLab;
 using WealthLab.Indicators;
 
-namespace ArmorediIntraday.Binders.EnterBindings
+namespace ArmoredIntradaySpace.Binders.EnterBindings
 {
     public class Trend : AEnterStrategy
     {
@@ -17,8 +17,8 @@ namespace ArmorediIntraday.Binders.EnterBindings
         public Trend(WealthScript strategyInstance)
             : base(strategyInstance)
         {
-            trendMA = SMA.Series(StrategyInstance.Bars.Close, TrendPeriod);
-            StrategyInstance.PlotSeries(StrategyInstance.PricePane, trendMA, Color.Red, LineStyle.Solid, 1);
+            trendMA = SMA.Series(si.Bars.Close, TrendPeriod);
+            si.PlotSeries(si.PricePane, trendMA, Color.Red, LineStyle.Solid, 1);
             firstValidValue = Math.Max(firstValidValue, trendMA.FirstValidValue);
         }
 
@@ -26,9 +26,9 @@ namespace ArmorediIntraday.Binders.EnterBindings
         {
             price = 0;
 
-            if(StrategyInstance.Bars.Close[bar] > trendMA[bar]) // Закрытие бара выше медленной скользящей
+            if(si.Bars.Close[bar] > trendMA[bar]) // Закрытие бара выше медленной скользящей
                return EnterSignalType.Up;
-           if (StrategyInstance.Bars.Close[bar] < trendMA[bar]) // Закрытие бара ниже медленной скользящей
+           if (si.Bars.Close[bar] < trendMA[bar]) // Закрытие бара ниже медленной скользящей
                return EnterSignalType.Down;
            return EnterSignalType.None;
         }

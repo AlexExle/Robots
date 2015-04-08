@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using WealthLab;
 using WealthLab.Indicators;
 using System.Drawing;
-using ArmorediIntraday.Binders.ExitBindings;
+using ArmoredIntradaySpace.Binders.ExitBindings;
 using ArmoredIntraDay.Binders.ExitBindings;
 
 
-namespace ArmorediIntraday.Binders
+namespace ArmoredIntradaySpace.Binders
 {
     /// <summary>
     /// Загатовка под стратегии на выход. Немного костылей и порождающая функция.
@@ -21,7 +21,7 @@ namespace ArmorediIntraday.Binders
 
         public static readonly int PullbackPeriod = 50;
 
-        public WealthScript StrategyInstance;
+        public WealthScript si;
 
         /// <summary>
         /// Не знаю... может для более серьезных случаев, в случае различных вариантов isTrend следует делать своих наследников.. но пока так.
@@ -34,15 +34,21 @@ namespace ArmorediIntraday.Binders
         /// но будем считать это небольшим костылем :) не было времени такие мелочи вычищать.
         /// </summary>
         public DataSeries atr;
+
+        public ArmoredIntraday ArmoredInstanse
+        {
+            get { return si as ArmoredIntraday; }
+        }
+
         public AExitStrategy()
         { }
         public AExitStrategy(WealthScript strategyInstance, bool isTrend)
         {
-            StrategyInstance = strategyInstance;
+            si = strategyInstance;
             this.isTrend = isTrend;
-            atr = ATR.Series(StrategyInstance.Bars, PullbackPeriod);
-            ChartPane atrPane = StrategyInstance.CreatePane(20, false, true);
-            StrategyInstance.PlotSeries(atrPane, atr, Color.Red, LineStyle.Solid, 1);
+            atr = ATR.Series(si.Bars, PullbackPeriod);
+            ChartPane atrPane = si.CreatePane(20, false, true);
+            si.PlotSeries(atrPane, atr, Color.Red, LineStyle.Solid, 1);
             //Костыль номер 2. как-то не хорошо что стратегия на выход лезет в кишки стратегии на вход. видимо место этой переменной в абстракции более высокого уровня. Например в самом классе CourseBinders64
             AEnterStrategy.firstValidValue = Math.Max(AEnterStrategy.firstValidValue, atr.FirstValidValue); // Первое значение, на котором существует ATR          
         }
@@ -52,7 +58,7 @@ namespace ArmorediIntraday.Binders
         abstract public bool TryExit(Position position, int bar, EnterSignalType lastEnterSignal);
 
 
-        public static AExitStrategy CreateInstance(ArmorediIntraday.ArmoredIntraday.ExitType exitType, WealthScript wlInstance, bool isTrend)
+        public static AExitStrategy CreateInstance(ArmoredIntradaySpace.ArmoredIntraday.ExitType exitType, WealthScript wlInstance, bool isTrend)
         {
             switch (exitType)
             {
@@ -68,6 +74,8 @@ namespace ArmorediIntraday.Binders
                     return new OnlyProfit(wlInstance, isTrend);
                 case ArmoredIntraday.ExitType.StaticProfit :
                     return new StaticProfit(wlInstance as ArmoredIntraday, isTrend);
+                case ArmoredIntraday.ExitType.FractalProfit:
+                    return new FractalExit(wlInstance, isTrend);
                 default:
                     throw new NotImplementedException(exitType.ToString() + " exit strategy not implemented");       
             }

@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using WealthLab;
 using WealthLab.Indicators;
 using System.Drawing;
-using ArmorediIntraday.Binders;
+using ArmoredIntradaySpace.Binders;
 using ArmoredIntraDay.Binders.ExitBindings;
 
 
-namespace ArmorediIntraday
+namespace ArmoredIntradaySpace
 {
     public class ArmoredIntraday : WealthScript
     {
@@ -23,7 +23,8 @@ namespace ArmorediIntraday
             TrendPullback,
             TrendPullbackImpulse,
             StaticImpulse,
-            ExpImpulse
+            ExpImpulse,
+            ArmoredPullback
         }
 
         public enum ExitType
@@ -33,7 +34,8 @@ namespace ArmorediIntraday
             StopAndProfit,
             Time,*/
             StaticProfit,
-            AtrProfit
+            AtrProfit,
+            FractalProfit
         }
 
         #endregion
@@ -68,15 +70,11 @@ namespace ArmorediIntraday
 
         public ArmoredIntraday()
         {
-            #region Инициализация параметров торговой системы
-
             _isTrend = CreateParameter("Trend", 1, 0, 1, 1);
-            _entryType = CreateParameter("Entry Type", 1, 0, 5, 1);
+            _entryType = CreateParameter("Entry Type", 1, 0, 6, 1);
             _enterParameter = CreateParameter("Enter Param", 0.1, 0.1, 1, 0.1);
             _exitParameter = CreateParameter("Exit Param", 0.1, 0.1, 1, 0.1);
-             _exitType = CreateParameter("Exit Type", 1, 0, 1, 1);
-
-            #endregion
+             _exitType = CreateParameter("Exit Type", 1, 0, 2, 1);
         }
 
         protected override void Execute()
@@ -85,7 +83,7 @@ namespace ArmorediIntraday
             PlotStops(); // Отображать уровни, на которых были попытки выхода по S/L
             ClearDebug(); // Очистить окно отладки
             HideVolume(); // Скрыть объемы    
-
+            
             DataSeries strikePoint = new DataSeries(Bars.Close, "Strike");
 
             #region Переменные для обслуживания позиции
@@ -98,7 +96,7 @@ namespace ArmorediIntraday
             //создаем инстансы стратегий через наш не до паттерн
             EnterStrategy = AEnterStrategy.CreateInstance((EntryType)_entryType.ValueInt, this);
             ExitStrategy =  AExitStrategy.CreateInstance((ExitType)_exitType.ValueInt, this, isTrend);
-
+            CentralSrikePoint = Open[AEnterStrategy.firstValidValue];
             #endregion
 
             for (int bar = AEnterStrategy.firstValidValue; bar < Bars.Count -1; bar++) // Пробегаемся по всем барам
@@ -118,13 +116,12 @@ namespace ArmorediIntraday
                 {
                     isLong = CentralSrikePoint >= Open[bar] ? 1 : 0;
                     strikePoint[bar] = CentralSrikePoint;
-                    //if (strikePoint[bar] >= Open[bar] != strikePoint[bar - 1] >= Open[bar - 1])
-                    //{
-                        foreach (var pos in ActivePositions.ToArray())
-                        {
-                           ExitAtLimit(bar , pos, CentralSrikePoint, "Exit at cross strikes");
-                        }
-                    //}
+                   
+                    foreach (var pos in ActivePositions.ToArray())
+                    {
+                        ExitAtLimit(bar , pos, CentralSrikePoint, "Exit at cross strikes");
+                    }
+                    
                 }
 
                 if (strikePoint[bar] != strikePoint[bar - 1])
@@ -182,16 +179,16 @@ namespace ArmorediIntraday
                     if (isSignalBuy && isLong != 0) // Если пришел сигнал на покупку и работаем с длинными позициями
                     {
                         if( lastPrice <= 0)
-                            newPoisiton = BuyAtMarket(bar + 1, (_isTrend.ValueInt == 1 ? "Tend" : "Flat") + " Buy");
+                            newPoisiton = BuyAtMarket(bar + 1, (_isTrend.ValueInt == 1 ? "Tend" : "Flat") + " Long_" + (ActivePositions.Count + 1));
                         else
-                            newPoisiton = BuyAtLimit(bar + 1, lastPrice,(_isTrend.ValueInt == 1 ? "Tend" : "Flat") + " Buy");
+                            newPoisiton = BuyAtLimit(bar + 1, lastPrice, (_isTrend.ValueInt == 1 ? "Tend" : "Flat") + " Long_" + (ActivePositions.Count + 1));
                     }
                     else if (isSignalShort && isLong != 1) // Если пришел сигнал на короткую продажу и работаем с короткими позициями
                     {
                         if (lastPrice <= 0)
-                            newPoisiton = ShortAtMarket(bar + 1, (_isTrend.ValueInt == 1 ? "Tend" : "Flat") + " Short");
+                            newPoisiton = ShortAtMarket(bar + 1, (_isTrend.ValueInt == 1 ? "Tend" : "Flat") + " Short_" + (ActivePositions.Count + 1));
                         else
-                            newPoisiton = ShortAtLimit(bar + 1, lastPrice,(_isTrend.ValueInt == 1 ? "Tend" : "Flat") + " Short");
+                            newPoisiton = ShortAtLimit(bar + 1, lastPrice, (_isTrend.ValueInt == 1 ? "Tend" : "Flat") + " Short_" + (ActivePositions.Count + 1));
                     }
 
                     if (newPoisiton == null) // Если не вошли в позицию

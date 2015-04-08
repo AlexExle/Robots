@@ -46,10 +46,15 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\MS123\Wealth-Lab Developer 6\WealthLab.Indicators.dll</HintPath>
     </Reference>
+    <Reference Include="WealthLab.Indicators.Community, Version=2015.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files\MS123\Wealth-Lab Developer 6\WealthLab.Indicators.Community.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Binders\AEnterStartegy.cs" />
     <Compile Include="Binders\AExitStrategy.cs" />
+    <Compile Include="Binders\EnterBindings\ArmoredPullback.cs" />
     <Compile Include="Binders\EnterBindings\ExpInterval.cs" />
     <Compile Include="Binders\EnterBindings\Impulse.cs" />
     <Compile Include="Binders\EnterBindings\Pullback.cs" />
@@ -61,6 +66,7 @@
     <Compile Include="Binders\EnterBindings\TrendPullbackImpulse.cs" />
     <Compile Include="Binders\EnterBindings\Trio.cs" />
     <Compile Include="Binders\ExitBindings\ComplexTrioExit.cs" />
+    <Compile Include="Binders\ExitBindings\FractalExit.cs" />
     <Compile Include="Binders\ExitBindings\OnlyProfit.cs" />
     <Compile Include="Binders\ExitBindings\StaticProfit.cs" />
     <Compile Include="Binders\ExitBindings\StopAndProfit.cs" />

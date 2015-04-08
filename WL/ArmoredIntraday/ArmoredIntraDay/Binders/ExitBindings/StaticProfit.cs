@@ -1,5 +1,5 @@
-﻿using ArmorediIntraday;
-using ArmorediIntraday.Binders;
+﻿using ArmoredIntradaySpace;
+using ArmoredIntradaySpace.Binders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,13 +39,26 @@ namespace ArmoredIntraDay.Binders.ExitBindings
         }
 
         public override void RecalculateExitConditions(WealthLab.Position position, int bar)
-        { }
+        {
+            double barsHeldCounter = Math.Floor((double)((bar - position.EntryBar) / 5));
+            if (barsHeldCounter < 5)
+            {
+                if (position.PositionType == PositionType.Long)
+                {
+
+                    position.AutoProfitLevel = position.AutoProfitLevel = position.EntryPrice + staticProfit - (barsHeldCounter * 20);
+                }
+                else
+                    position.AutoProfitLevel = position.AutoProfitLevel = position.EntryPrice - staticProfit + (barsHeldCounter * 20);
+            }
+        
+        }
 
         public override bool TryExit(WealthLab.Position position, int bar, EnterSignalType lastEnterSignal)
         {
             bool result = false;
             if (!result)
-                result = StrategyInstance.ExitAtLimit(bar + 1, position, position.AutoProfitLevel, "T/P"); // если не вышли, то попробовать выйти по T/P 
+                result = si.ExitAtLimit(bar + 1, position, position.AutoProfitLevel, "T/P"); // если не вышли, то попробовать выйти по T/P 
             return result;
         }
     }

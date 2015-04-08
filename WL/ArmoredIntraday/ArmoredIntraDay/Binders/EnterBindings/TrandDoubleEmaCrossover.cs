@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using WealthLab;
 using WealthLab.Indicators;
 
-namespace ArmorediIntraday.Binders.EnterBindings
+namespace ArmoredIntradaySpace.Binders.EnterBindings
 {
     class TrandDoubleEmaCrossover : AEnterStrategy
     {
@@ -19,12 +19,12 @@ namespace ArmorediIntraday.Binders.EnterBindings
         public TrandDoubleEmaCrossover(WealthScript strategyInstance)
             : base(strategyInstance)
         {
-            trendEma = EMA.Series(StrategyInstance.Bars.Close, TrendPeriod, EMACalculation.Legacy);
-            StrategyInstance.PlotSeries(StrategyInstance.PricePane, trendEma, Color.Red, LineStyle.Solid, 1);
+            trendEma = EMA.Series(si.Bars.Close, TrendPeriod, EMACalculation.Legacy);
+            si.PlotSeries(si.PricePane, trendEma, Color.Red, LineStyle.Solid, 1);
             firstValidValue = Math.Max(firstValidValue, trendEma.FirstValidValue);
 
-            fastEma = EMA.Series(StrategyInstance.Bars.Close, FastPeriod, EMACalculation.Legacy);
-            StrategyInstance.PlotSeries(StrategyInstance.PricePane, fastEma, Color.Green, LineStyle.Solid, 1);
+            fastEma = EMA.Series(si.Bars.Close, FastPeriod, EMACalculation.Legacy);
+            si.PlotSeries(si.PricePane, fastEma, Color.Green, LineStyle.Solid, 1);
             firstValidValue = Math.Max(firstValidValue, fastEma.FirstValidValue);
         }
 

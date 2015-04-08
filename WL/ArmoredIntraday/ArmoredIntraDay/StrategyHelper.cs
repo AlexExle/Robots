@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WealthLab;
 
-namespace ArmorediIntraday
+namespace ArmoredIntradaySpace
 {
     class MyStrategyHelper : StrategyHelper
     {

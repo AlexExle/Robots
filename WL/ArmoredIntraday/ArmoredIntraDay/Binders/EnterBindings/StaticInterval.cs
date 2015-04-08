@@ -1,5 +1,5 @@
-﻿using ArmorediIntraday;
-using ArmorediIntraday.Binders;
+﻿using ArmoredIntradaySpace;
+using ArmoredIntradaySpace.Binders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,13 +22,13 @@ namespace ArmoredIntraDay.Binders.EnterBindings
         public override EnterSignalType GenerateSignal(int bar, out double price)
         {
             price = 0;
-            ArmoredIntraday inst = StrategyInstance as ArmoredIntraday;
-            if (inst.Close[bar + 1] > CalcPrice(inst) + inst.CentralSrikePoint)
+            ArmoredIntraday inst = si as ArmoredIntraday;
+            if (inst.Close[bar] > CalcPrice(inst) + inst.CentralSrikePoint)
             {
                 price = CalcPrice(inst) + inst.CentralSrikePoint;
                 return EnterSignalType.Up;
             }
-            if (inst.Close[bar + 1] < inst.CentralSrikePoint - CalcPrice(inst))
+            if (inst.Close[bar] < inst.CentralSrikePoint - CalcPrice(inst))
             {
                 price = CalcPrice(inst) - inst.CentralSrikePoint;
                 return EnterSignalType.Down;

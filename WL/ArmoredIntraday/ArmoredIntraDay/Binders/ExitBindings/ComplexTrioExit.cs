@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WealthLab;
 
-namespace ArmorediIntraday.Binders.ExitBindings
+namespace ArmoredIntradaySpace.Binders.ExitBindings
 {
     class ComplexTrioExit : AExitStrategy
     {

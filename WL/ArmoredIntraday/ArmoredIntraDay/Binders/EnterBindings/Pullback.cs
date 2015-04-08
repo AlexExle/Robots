@@ -7,28 +7,29 @@ using System.Threading.Tasks;
 using WealthLab;
 using WealthLab.Indicators;
 
-namespace ArmorediIntraday.Binders.EnterBindings
+namespace ArmoredIntradaySpace.Binders.EnterBindings
 {
     public class Pullback : AEnterStrategy
     {
-        public const int PullbackPeriod = 10;
-        DataSeries pullbackMA;
+        public int PullbackPeriod = 30;
+        public DataSeries pullbackMA; 
 
         public Pullback(WealthScript strategyInstance)
             : base(strategyInstance)
         {
-             pullbackMA = SMA.Series(StrategyInstance.Bars.Close, PullbackPeriod);
-             StrategyInstance.PlotSeries(StrategyInstance.PricePane, pullbackMA, Color.Blue, LineStyle.Solid, 1);
-             firstValidValue = Math.Max(firstValidValue, pullbackMA.FirstValidValue);            
+            PullbackPeriod = (int)Math.Round(PullbackPeriod * this.ArmoredInstanse._enterParameter.Value);
+            pullbackMA = SMA.Series(si.Bars.Close, PullbackPeriod);
+            si.PlotSeries(si.PricePane, pullbackMA, Color.Blue, LineStyle.Solid, 1);
+            firstValidValue = Math.Max(firstValidValue, pullbackMA.FirstValidValue);            
            
         }
 
         public override EnterSignalType GenerateSignal(int bar, out double price)
         {
             price = 0;
-            if (StrategyInstance.Bars.Close[bar] > pullbackMA[bar]) // Закрытие бара выше быстрой скользящей
+            if (si.Bars.Close[bar] > pullbackMA[bar]) // Закрытие бара выше быстрой скользящей
                 return EnterSignalType.Up;
-            if (StrategyInstance.Bars.Close[bar] < pullbackMA[bar]) // Закрытие бара ниже быстрой скользящей
+            if (si.Bars.Close[bar] < pullbackMA[bar]) // Закрытие бара ниже быстрой скользящей
                 return EnterSignalType.Down;
             return EnterSignalType.None;
         }

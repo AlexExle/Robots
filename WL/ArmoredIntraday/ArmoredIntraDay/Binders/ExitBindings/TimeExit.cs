@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WealthLab;
 
-namespace ArmorediIntraday.Binders.ExitBindings
+namespace ArmoredIntradaySpace.Binders.ExitBindings
 {
     public class TimeExit : AExitStrategy
     {
@@ -24,7 +24,7 @@ namespace ArmorediIntraday.Binders.ExitBindings
         public override bool TryExit(WealthLab.Position position, int bar, EnterSignalType lastEnterSignal)
         {
             if (bar - position.EntryBar == WaitPeriod) // Если время вышло
-              return StrategyInstance.ExitAtMarket(bar + 1, position, "Exit Time"); // то выйти из позиции по рынку
+              return si.ExitAtMarket(bar + 1, position, "Exit Time"); // то выйти из позиции по рынку
             return false;
         }
     }
