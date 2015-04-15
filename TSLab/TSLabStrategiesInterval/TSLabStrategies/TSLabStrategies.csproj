@@ -50,6 +50,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArmoredIntaday.cs" />
+    <Compile Include="ArmoredIntaday2.cs" />
+    <Compile Include="ArmoredIntadayExp2.cs" />
     <Compile Include="ATRChannel.cs" />
     <Compile Include="ATRFloatChannel.cs" />
     <Compile Include="ATRTrio.cs" />
