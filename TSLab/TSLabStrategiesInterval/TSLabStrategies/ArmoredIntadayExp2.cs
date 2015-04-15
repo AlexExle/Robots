@@ -48,7 +48,7 @@ namespace TSLabStrategies
 
             firstValidValue = Math.Max(firstValidValue, period);
 
-            for (int bar = 0; bar < sec.Bars.Count; bar++)
+            for (int bar = 1; bar < sec.Bars.Count; bar++)
             {
                 List<IPosition> activePositions = new List<IPosition>(sec.Positions.GetActiveForBar(bar));
                 if (sec.Bars[bar].Close > StrikeLine.Value)
