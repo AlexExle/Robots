@@ -101,7 +101,7 @@ namespace TSLabStrategies
         public int CountOfIntradayClosedPositions(string signalName, int bar, ISecurity sec)
         {
             List<IPosition> list = new List<IPosition>(sec.Positions.GetClosedForBar(bar));
-            return list.FindAll(pos => pos.EntrySignalName == signalName && pos.ExitBar.Date > DateTime.Now.Date).Count;
+            return list.FindAll(pos => pos.EntrySignalName == signalName && pos.ExitBar.Date.ToUniversalTime().DayOfYear == DateTime.UtcNow.DayOfYear).Count;
         }
 
         public double CalcPrice(int positionNuber)
