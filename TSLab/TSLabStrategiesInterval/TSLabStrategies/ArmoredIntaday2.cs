@@ -77,17 +77,15 @@ namespace TSLabStrategies
                         {
                             signalName = "EnterToShort" + (activePositions.Count + i);
                             int closedPositions = CountOfIntradayClosedPositions(signalName, bar, sec);
-                            shares = shares + (int)Math.Floor((double)(closedPositions / sharesCounter)) * shares;
-                            ctx.Log(String.Format("Closed positions for {0}, {1}", signalName, closedPositions), new Color());
-                            sec.Positions.SellAtPrice(bar + 1, Shares, StrikeLine + CalcPrice(activePositions.Count + i), signalName);
+                            shares = shares + (int)Math.Floor((double)(closedPositions / sharesCounter)) * shares;                            
+                            sec.Positions.SellAtPrice(bar + 1, shares, StrikeLine + CalcPrice(activePositions.Count + i), signalName);
                         }
                         if (direction == 1 && Direction > -1)
                         {
                             signalName = "EnterToLong" + (activePositions.Count + i);
                             int closedPositions = CountOfIntradayClosedPositions(signalName, bar, sec);
-                            shares = shares + (int)Math.Floor((double)(closedPositions / sharesCounter)) * shares;
-                            ctx.Log(String.Format("Closed positions for {0}, {1}", signalName, closedPositions), new Color());
-                            sec.Positions.BuyAtPrice(bar + 1, Shares, StrikeLine - CalcPrice(activePositions.Count + i), signalName);
+                            shares = shares + (int)Math.Floor((double)(closedPositions / sharesCounter)) * shares;                            
+                            sec.Positions.BuyAtPrice(bar + 1, shares, StrikeLine - CalcPrice(activePositions.Count + i), signalName);
                         }
                     }
 
