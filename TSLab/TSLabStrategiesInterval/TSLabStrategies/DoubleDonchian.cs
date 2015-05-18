@@ -93,22 +93,23 @@ namespace MasterGroop2014.TSLab.Strategies
             {
 
                 LastActivePosition = symbol.Positions.GetLastPositionActive(bar);// получить ссылку на последнию позицию
+                int shares = Math.Max(1, symbol.PercentOfEquityShares(bar, symbol.CurrentBalance(bar) * _equityPercent.Value / 100));                 
 
                 if (LastActivePosition != null)//if (IsLastPositionActive) //если позиция есть:
                 {
                     if (LastActivePosition.IsLong) //если позиция длинная
                     {
-                        LastActivePosition.CloseAtStop(bar + 1, lowShortLevel[bar], "Exit Long");
+                        LastActivePosition.CloseAtStop(bar + 1, lowShortLevel[bar], LastActivePosition.EntrySignalName +  "Exit_Long");
+                        symbol.Positions.SellIfLess(bar + 1, shares, lowLongLevel[bar], "Sell");
                     }
                     else //если позиция короткая
                     {
-                        LastActivePosition.CloseAtStop(bar + 1, highShortLevel[bar], "Exit Short");
+                        LastActivePosition.CloseAtStop(bar + 1, highShortLevel[bar], LastActivePosition.EntrySignalName + "Exit_Short");
+                        symbol.Positions.BuyIfGreater(bar + 1, shares, highLongLevel[bar], "Buy");
                     }
                 }
                 else //если позиции нет:
-                {
-                    int shares = Math.Max(1, symbol.PercentOfEquityShares(bar, symbol.CurrentBalance(bar) * _equityPercent.Value / 100));                 
-
+                {              
                     symbol.Positions.BuyIfGreater(bar + 1, shares, highLongLevel[bar], "Buy");
 
                     symbol.Positions.SellIfLess(bar + 1, shares, lowLongLevel[bar], "Sell");

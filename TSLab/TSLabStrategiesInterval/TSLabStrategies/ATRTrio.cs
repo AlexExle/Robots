@@ -66,25 +66,25 @@ namespace TSLabStrategies
                     {
                         if (signalShort)
                         {
-                            LastActivePosition.CloseAtMarket(bar + 1, "exit by market long");
+                            LastActivePosition.CloseAtMarket(bar + 1, "overturnExit");
                         }                     
 
-                        if (sec.Bars[bar].Low <= LastActivePosition.EntryPrice - atr[bar] * StopFactor)
-                            LastActivePosition.CloseAtStop(bar + 1, LastActivePosition.EntryPrice - atr[bar] * StopFactor, "stop Long");
-                        if (sec.Bars[bar].High >= LastActivePosition.EntryPrice + atr[bar] * ProfitFactor)
-                            LastActivePosition.CloseAtProfit(bar + 1, LastActivePosition.EntryPrice + atr[bar] * ProfitFactor, "take Long");
+                        if (sec.Bars[bar].Close <= LastActivePosition.EntryPrice)
+                            LastActivePosition.CloseAtStop(bar + 1, LastActivePosition.EntryPrice - atr[bar] * StopFactor, "stop_Long");
+                        if (sec.Bars[bar].Close > LastActivePosition.EntryPrice)
+                            LastActivePosition.CloseAtProfit(bar + 1, LastActivePosition.EntryPrice + atr[bar] * ProfitFactor, "take_Long");
                     }
                     else //если позиция короткая
                     {
                         if (signalBuy)
                         {
-                            LastActivePosition.CloseAtMarket(bar + 1, "exit by market short");
+                            LastActivePosition.CloseAtMarket(bar + 1, "overturnExit");
                         }                   
 
-                        if (sec.Bars[bar].High >= LastActivePosition.EntryPrice + atr[bar] * StopFactor)
-                        LastActivePosition.CloseAtStop(bar + 1, LastActivePosition.EntryPrice + atr[bar] * StopFactor, "stop Short");
-                        if (sec.Bars[bar].Low <= LastActivePosition.EntryPrice - atr[bar] * ProfitFactor)
-                        LastActivePosition.CloseAtProfit(bar + 1, LastActivePosition.EntryPrice - atr[bar] * ProfitFactor, "take Short");
+                        if (sec.Bars[bar].Close >= LastActivePosition.EntryPrice)
+                        LastActivePosition.CloseAtStop(bar + 1, LastActivePosition.EntryPrice + atr[bar] * StopFactor, "stop_Short");
+                        if (sec.Bars[bar].Close < LastActivePosition.EntryPrice)
+                        LastActivePosition.CloseAtProfit(bar + 1, LastActivePosition.EntryPrice - atr[bar] * ProfitFactor, "take_Short");
                     }
                 }
 
