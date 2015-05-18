@@ -19,16 +19,13 @@ namespace TSLabStrategies
         public OptimProperty period;
         public OptimProperty multiplier;
         public OptimProperty PercentOEquity;
-        public OptimProperty ComperssPeriod;
-        private Compress KandleCompresser = new Compress();
-
+        
         private string[] timesToUpdateLeveles = { "23:45" };
         public ATRChannel()
         {
             period = new OptimProperty(400, 50, 800, 10);
             multiplier = new OptimProperty(2, 0.5, 4, 0.1);
-            PercentOEquity = new OptimProperty(30, 5, 50, 5);
-            ComperssPeriod = new OptimProperty(300, 300, 300, 0);
+            PercentOEquity = new OptimProperty(30, 5, 50, 5);        
         }
 
         public void Execute(IContext ctx, ISecurity sec)
@@ -43,11 +40,7 @@ namespace TSLabStrategies
           
             double calcPrice = 0;
 
-            KandleCompresser.Interval = ComperssPeriod;
-
-            ISecurity compressedSec = KandleCompresser.Execute(sec);
-
-            IList<double> atr = ctx.GetData("ATR", new[] { period.ToString() }, () => Series.AverageTrueRange(compressedSec.Bars, period));
+            IList<double> atr = ctx.GetData("ATR", new[] { period.ToString() }, () => Series.AverageTrueRange(sec.Bars, period));
 
             firstValidValue = Math.Max(firstValidValue, period);
          
@@ -56,12 +49,12 @@ namespace TSLabStrategies
 
             //bool signalBuy = false; bool signalShort = false;
 
-            for (int bar = 0; bar < compressedSec.Bars.Count; bar++)
+            for (int bar = 0; bar < sec.Bars.Count; bar++)
             {
                 LastActivePosition = sec.Positions.GetLastPositionActive(bar);
-                if (IsDateInArray(compressedSec.Bars[bar].Date, dates))
-                    {
-                        calcPrice = compressedSec.Bars[bar].Close;
+                if (IsDateInArray(sec.Bars[bar].Date, dates))
+                    {                        
+                        calcPrice = sec.Bars[bar].Close;
                     }
 
                     highLevelSeries2.Add((double)Math.Round((calcPrice + (atr[bar] * multiplier.Value * 2)) / 10d, 0)*10);
@@ -100,7 +93,7 @@ namespace TSLabStrategies
             }
 		        
             IPane pricePane = ctx.First;
-            pricePane.AddList("Compressed", compressedSec, CandleStyles.BAR_CANDLE, true, true, true, true, 0x0000a0, PaneSides.RIGHT);
+            pricePane.AddList("sec", sec, CandleStyles.BAR_CANDLE, true, true, true, true, 0x0000a0, PaneSides.RIGHT);
             // Отрисовка PC
             pricePane.AddList("High Channel", highLevelSeries2, ListStyles.LINE, 0x0000a0, LineStyles.DOT, PaneSides.RIGHT);
             pricePane.AddList("Low Channel", lowLevelSeries2, ListStyles.LINE, 0x0000a0, LineStyles.DOT, PaneSides.RIGHT);
