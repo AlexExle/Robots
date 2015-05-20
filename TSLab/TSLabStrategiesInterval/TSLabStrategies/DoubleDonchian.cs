@@ -99,17 +99,18 @@ namespace MasterGroop2014.TSLab.Strategies
 
 
                 var positions = symbol.Positions.GetActiveForBar(bar);
+                if (positions != null)
                 foreach (var position in positions)
                 {
                     if (position.IsLong)
                     {
-                        position.CloseAtStop(bar + 1, lowShortLevel[bar], LastActivePosition.EntrySignalName + "Exit_Long");
+                        position.CloseAtStop(bar + 1, lowShortLevel[bar], position.EntrySignalName + "Exit_Long");
                         if (positions.Count() < 2)
                             symbol.Positions.SellIfLess(bar + 1, shares, lowLongLevel[bar], "Sell");
                     }
                     else
                     {
-                        position.CloseAtStop(bar + 1, highShortLevel[bar], LastActivePosition.EntrySignalName + "Exit_Short");
+                        position.CloseAtStop(bar + 1, highShortLevel[bar], position.EntrySignalName + "Exit_Short");
                         if (positions.Count() < 2)
                             symbol.Positions.BuyIfGreater(bar + 1, shares, highLongLevel[bar], "Buy");
                     }
