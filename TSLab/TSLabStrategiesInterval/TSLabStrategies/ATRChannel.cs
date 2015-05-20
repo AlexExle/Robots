@@ -50,8 +50,7 @@ namespace TSLabStrategies
             //bool signalBuy = false; bool signalShort = false;
 
             for (int bar = 0; bar < sec.Bars.Count; bar++)
-            {
-                LastActivePosition = sec.Positions.GetLastPositionActive(bar);
+            {               
                 if (IsDateInArray(sec.Bars[bar].Date, dates))
                     {                        
                         calcPrice = sec.Bars[bar].Close;
@@ -65,20 +64,24 @@ namespace TSLabStrategies
                     if (bar > firstValidValue)
                     {
                         int shares = Math.Max(1, sec.PercentOfEquityShares(bar, sec.CurrentBalance(bar) * PercentOEquity.Value / 100));
-                        if (LastActivePosition != null)//if (IsLastPositionActive) //если позиция есть:
+                        
+                        var positions = sec.Positions.GetActiveForBar(bar);
+                        foreach (var position in positions)
                         {
-                            if (LastActivePosition.IsLong)
+                            if (position.IsLong)
                             {
 
-                                LastActivePosition.CloseAtStop(bar + 1, lowLevelSeries2[bar], "stop_Long");
-                                sec.Positions.SellIfLess(bar + 1, shares, lowLevelSeries2[bar], "Sell");
+                                position.CloseAtStop(bar + 1, lowLevelSeries2[bar], position.EntrySignalName + "stop_Long");
+                                if (positions.Count() < 2)
+                                    sec.Positions.SellIfLess(bar + 1, shares, lowLevelSeries2[bar], "Sell");
                             }
                             else
                             {
-                                LastActivePosition.CloseAtStop(bar + 1, highLevelSeries2[bar],LastActivePosition.EntrySignalName + "stop_Short");
-                                sec.Positions.BuyIfGreater(bar + 1, shares, highLevelSeries2[bar], "Buy");
+                                position.CloseAtStop(bar + 1, highLevelSeries2[bar], position.EntrySignalName + "stop_Short");
+                                if (positions.Count() < 2)
+                                    sec.Positions.BuyIfGreater(bar + 1, shares, highLevelSeries2[bar], "Buy");
                             }
-                        }
+                        }                       
                         
                         if (LastActivePosition == null)
                         {                         
