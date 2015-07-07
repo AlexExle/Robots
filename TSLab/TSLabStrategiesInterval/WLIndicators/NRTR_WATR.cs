@@ -37,7 +37,7 @@ namespace WLIndicators
             return result;           
         }
 
-        public BarScale TScaleToWLScale(ISecurity source)
+        public static BarScale TScaleToWLScale(ISecurity source)
         {
             switch (source.IntervalBase)
             {
