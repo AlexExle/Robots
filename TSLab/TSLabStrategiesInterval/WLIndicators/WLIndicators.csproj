@@ -60,6 +60,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NRTR_Osc.cs" />
     <Compile Include="NRTR_WATR.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
