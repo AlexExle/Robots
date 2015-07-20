@@ -49,6 +49,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ATRChannelForSmall.cs" />
     <Compile Include="ATRChannel.cs" />
     <Compile Include="ATRFloatChannel.cs" />
     <Compile Include="ATRTrio.cs" />
