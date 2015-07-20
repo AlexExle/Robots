@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="ATRChannelForSmall.cs" />
     <Compile Include="ATRChannel.cs" />
+    <Compile Include="ATRFloatChannelForSmall.cs" />
     <Compile Include="ATRFloatChannel.cs" />
     <Compile Include="ATRTrio.cs" />
     <Compile Include="DonchianChannel.cs" />
