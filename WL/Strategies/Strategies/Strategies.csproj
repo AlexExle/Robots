@@ -50,6 +50,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DayStatistic.cs" />
+    <Compile Include="Fractal.cs" />
+    <Compile Include="NRTR2.cs" />
     <Compile Include="NRTR1.cs" />
     <Compile Include="TimeImpulse.cs" />
     <Compile Include="DayATRChannel.cs" />
