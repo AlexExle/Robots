@@ -127,7 +127,7 @@ namespace TSLabStrategies
           
             for (int bar = 1; bar < sec.Bars.Count; bar++)
             {
-                List<IPosition> activePositions = new List<IPosition>(sec.Positions.GetClosedForBar(bar));
+                List<IPosition> activePositions = new List<IPosition>(sec.Positions.GetActiveForBar(bar));
                 foreach (IPosition activePosition in activePositions)
                 {
                     activePosition.CloseAtPrice(bar + 1, activePosition.IsLong ? buyFractal[bar] : sellFractal[bar], GenerateSignalName(false, !activePosition.IsLong, activePosition.IsLong ? buyFractal[bar] : sellFractal[bar]));
