@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Fractals64">
+      <HintPath>..\..\Lib\Fractals64.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -51,6 +54,7 @@
   <ItemGroup>
     <Compile Include="ArmoredIntaday.cs" />
     <Compile Include="ArmoredIntaday2.cs" />
+    <Compile Include="Fractal.cs" />
     <Compile Include="ArmoredIntadayExp2.cs" />
     <Compile Include="ATRChannel.cs" />
     <Compile Include="ATRFloatChannel.cs" />
