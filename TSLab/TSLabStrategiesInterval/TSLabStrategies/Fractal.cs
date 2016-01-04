@@ -40,7 +40,7 @@ namespace TSLabStrategies
             }
         }
 
-        public int Fractal
+        public int FractalVal
         {
             get
             {
@@ -67,19 +67,19 @@ namespace TSLabStrategies
             fractalBuy.Context = ctx;
             fractalBuy.Left = Leg;
             fractalBuy.Right = Leg;
-            fractalBuy.Fractal = Fractal;
+            fractalBuy.Fractal = FractalVal;
             fractalBuy.CurrentBar = CurrentBar;
 
             fractalSell.Context = ctx;
             fractalSell.Left = Leg;
             fractalSell.Right = Leg;
-            fractalSell.Fractal = Fractal;
+            fractalSell.Fractal = FractalVal;
             fractalSell.CurrentBar = CurrentBar;
 
             IList<double> buyFractal = ctx.GetData
             (
                 "Верхняя граница ширкого канала", //вводим название нового индикатора
-                new[] { Leg.ToString(), Fractal.ToString(), CurrentBar.ToString() },
+                new[] { Leg.ToString(), FractalVal.ToString(), CurrentBar.ToString() },
                 delegate
                 {
                     try
@@ -97,14 +97,14 @@ namespace TSLabStrategies
             IList<double> sellFractal = ctx.GetData
             (
                 "Верхняя граница ширкого канала", //вводим название нового индикатора
-                new[] { Leg.ToString(), Fractal.ToString(), CurrentBar.ToString() },
+                new[] { Leg.ToString(), FractalVal.ToString(), CurrentBar.ToString() },
                 delegate
                 {
                     try
                     {
                         return fractalSell.Execute(sec);
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
 
                         throw new TSLab.Script.ScriptException("Ошибка при вычислении блока \'fractalBuy\'." + e.ToString());
