@@ -14,14 +14,12 @@ namespace TSLabStrategies
     public class Fractal : IExternalScript
     {
         public IPosition LastActivePosition = null;
-        int period = 300;
-        int direction = 0;
-
+    
         public OptimProperty Shares;
         public OptimProperty MaxPositions;
-        public OptimProperty StrikeLine;
-        public OptimProperty EnterPriceStep;
-        public OptimProperty TakeProfitSize;
+        public OptimProperty LeftRight;
+        public OptimProperty FractalParam;
+        public OptimProperty CurrentBarParam;
         /// <summary>
         /// -1 - only short positions
         /// 0 - both positions
@@ -36,7 +34,7 @@ namespace TSLabStrategies
         {
             get
             {
-                return 30;
+                return LeftRight;
             }
         }
 
@@ -44,7 +42,7 @@ namespace TSLabStrategies
         {
             get
             {
-                return 1;
+                return FractalParam;
             }
         }
 
@@ -61,7 +59,10 @@ namespace TSLabStrategies
             fractalBuy = new FractalBuyValue_.FractalBuyValue();
             fractalSell = new FractalSellValue_.FractalSellValue();
             Shares = new OptimProperty(1, 1, 1, 1);
-            MaxPositions = new OptimProperty(4, 4, 4, 1);                  
+            MaxPositions = new OptimProperty(4, 1, 4, 1);
+            LeftRight = new OptimProperty(5, 1, 20, 1);
+            FractalParam = new OptimProperty(5, 1, 20, 1);
+            CurrentBarParam = new OptimProperty(0, 0, 1, 1);
         }
 
         public void Execute(IContext ctx, TSLab.Script.ISecurity sec)
@@ -80,7 +81,7 @@ namespace TSLabStrategies
 
             IList<double> buyFractal = ctx.GetData
             (
-                "Верхняя граница ширкого канала", //вводим название нового индикатора
+                "Фрактал на покупку", //вводим название нового индикатора
                 new[] { Leg.ToString(), FractalVal.ToString(), CurrentBar.ToString() },
                 delegate
                 {
@@ -98,7 +99,7 @@ namespace TSLabStrategies
 
             IList<double> sellFractal = ctx.GetData
             (
-                "Верхняя граница ширкого канала", //вводим название нового индикатора
+                "Фрактал на продажу", //вводим название нового индикатора
                 new[] { Leg.ToString(), FractalVal.ToString(), CurrentBar.ToString() },
                 delegate
                 {
@@ -114,41 +115,53 @@ namespace TSLabStrategies
                 } // именно здесь расчитывается индикатор
             );
 
-
-           
-
             IPane pricePane = ctx.First;
 
             // Отрисовка PC
-            pricePane.AddList("Фрактал на покупку", buyFractal, ListStyles.LINE, 0x0000a0, LineStyles.DASH, PaneSides.RIGHT);
-            pricePane.AddList("Фрактал на продажу", sellFractal, ListStyles.LINE, 0xa00000, LineStyles.DASH, PaneSides.RIGHT);
+            pricePane.AddList("Фрактал на покупку", buyFractal, ListStyles.LINE, 0xa00000, LineStyles.DASH, PaneSides.RIGHT);
+            pricePane.AddList("Фрактал на продажу", sellFractal, ListStyles.LINE, 0x0000a0, LineStyles.DASH, PaneSides.RIGHT);
 
             int firstValidValue = 0;
 
             firstValidValue = Math.Max(firstValidValue, Leg);
-            bool buyFractalCross = false;
-            bool sellFractalCross = false;
-
+          
             for (int bar = 1; bar < sec.Bars.Count; bar++)
             {
-               
+                List<IPosition> activePositions = new List<IPosition>(sec.Positions.GetClosedForBar(bar));
+                foreach (IPosition activePosition in activePositions)
+                {
+                    activePosition.CloseAtPrice(bar + 1, activePosition.IsLong ? buyFractal[bar] : sellFractal[bar], GenerateSignalName(false, !activePosition.IsLong, activePosition.IsLong ? buyFractal[bar] : sellFractal[bar]));
+                }
+
+                if (activePositions.Count < MaxPositions)
+                {
+                    if (!IsPositionexistForFractal(buyFractal[bar], false, bar, sec, activePositions))
+                    {
+                        sec.Positions.SellAtPrice(bar + 1, Shares, buyFractal[bar], GenerateSignalName(true, false, buyFractal[bar]));
+                    }
+
+                    if (!IsPositionexistForFractal(sellFractal[bar], true, bar, sec, activePositions))
+                    {
+                        sec.Positions.BuyAtPrice(bar + 1, Shares, sellFractal[bar], GenerateSignalName(true, true, sellFractal[bar]));
+                    }
+                }
             }
         }
 
-        public int CountOfIntradayClosedPositions(string signalName, int bar, ISecurity sec)
+        public bool IsPositionexistForFractal(double fractalPrice, bool direcition, int bar, ISecurity sec, List<IPosition> list)
         {
-            List<IPosition> list = new List<IPosition>(sec.Positions.GetClosedForBar(bar));
+            string signalName = GenerateSignalName(true, direcition, fractalPrice);
+            return list.FindAll(pos => pos.EntrySignalName.Contains(signalName)).Count > 0;
+        }
+
+        public int CountOfIntradayClosedPositions(string signalName, int bar, ISecurity sec, List<IPosition> list)
+        {            
             return list.FindAll(pos => pos.EntrySignalName.Contains(signalName) && pos.ExitBar.Date.ToUniversalTime().DayOfYear == DateTime.UtcNow.DayOfYear).Count;
         }
 
         public string GenerateSignalName(bool enter, bool direction, double price)
         {
             return (enter ? "Enter_" : "Exit") + (direction ? "Long_" : "Short_") + price.ToString();
-        }
-
-        public void OnFractalCrossover(IContext ctx, TSLab.Script.ISecurity sec, bool fractalType, int barCount, double fractalPrice)
-        {
-            
         }
     }
 }
