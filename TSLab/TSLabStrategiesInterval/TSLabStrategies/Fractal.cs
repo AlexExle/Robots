@@ -58,6 +58,8 @@ namespace TSLabStrategies
 
         public Fractal()
         {
+            fractalBuy = new FractalBuyValue_.FractalBuyValue();
+            fractalSell = new FractalSellValue_.FractalSellValue();
             Shares = new OptimProperty(1, 1, 1, 1);
             MaxPositions = new OptimProperty(4, 4, 4, 1);                  
         }
