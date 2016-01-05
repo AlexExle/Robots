@@ -19,13 +19,7 @@ namespace TSLabStrategies
         public OptimProperty MaxPositions;
         public OptimProperty LeftRight;
         public OptimProperty FractalParam;
-        public OptimProperty CurrentBarParam;
-        /// <summary>
-        /// -1 - only short positions
-        /// 0 - both positions
-        /// 1 - only long positions
-        /// </summary>
-        public OptimProperty Direction;
+        public OptimProperty CurrentBarParam;      
 
         public FractalBuyValue_.FractalBuyValue fractalBuy;
         public FractalSellValue_.FractalSellValue fractalSell;
@@ -61,7 +55,7 @@ namespace TSLabStrategies
             Shares = new OptimProperty(1, 1, 1, 1);
             MaxPositions = new OptimProperty(4, 1, 4, 1);
             LeftRight = new OptimProperty(5, 1, 20, 1);
-            FractalParam = new OptimProperty(5, 1, 20, 1);
+            FractalParam = new OptimProperty(0, 0, 1, 1);
             CurrentBarParam = new OptimProperty(0, 0, 1, 1);
         }
 
