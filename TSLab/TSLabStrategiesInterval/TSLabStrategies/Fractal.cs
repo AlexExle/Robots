@@ -50,7 +50,7 @@ namespace TSLabStrategies
         {
             get
             {
-                return 1;
+                return CurrentBarParam;
             }
         }
 
