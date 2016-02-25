@@ -67,17 +67,10 @@
     <Compile Include="MSpinTrixVDV_PoE.cs" />
     <Compile Include="MSStrategy1_TSLab_PoE.cs" />
     <Compile Include="MultiPositionExample.cs" />
-    <Compile Include="NRTR.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Stairway.cs" />
     <Compile Include="Trio.cs" />
     <Compile Include="TSLabHelper.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\WLIndicators\WLIndicators.csproj">
-      <Project>{23334532-3c14-4c61-992b-607e1b1b217f}</Project>
-      <Name>WLIndicators</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
