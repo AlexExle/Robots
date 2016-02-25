@@ -64,6 +64,7 @@
     <Compile Include="DoubleDonchian.cs" />
     <Compile Include="DonVDV.cs" />
     <Compile Include="Lustra.cs" />
+    <Compile Include="MomentumPriceChannel.cs" />
     <Compile Include="MSpinTrixVDV_PoE.cs" />
     <Compile Include="MSStrategy1_TSLab_PoE.cs" />
     <Compile Include="MultiPositionExample.cs" />
