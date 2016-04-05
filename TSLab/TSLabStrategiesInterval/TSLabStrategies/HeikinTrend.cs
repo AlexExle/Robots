@@ -12,7 +12,7 @@ using MMG2015.TSLab.Scripts;
 
 namespace TSLabStrategies
 {
-    class HeikinTrend : IExternalScript
+    public class HeikinTrend : IExternalScript
     {
 
         public OptimProperty PercentOEquity = new OptimProperty(30, 5, 50, 5);
