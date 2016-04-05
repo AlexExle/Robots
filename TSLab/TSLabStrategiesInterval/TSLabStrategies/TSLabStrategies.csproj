@@ -60,9 +60,11 @@
     <Compile Include="ATRFloatChannel.cs" />
     <Compile Include="ATRTrio.cs" />
     <Compile Include="ArmoredIntadayExp.cs" />
+    <Compile Include="ArmoredFractal.cs" />
     <Compile Include="DonchianChannel.cs" />
     <Compile Include="DoubleDonchian.cs" />
     <Compile Include="DonVDV.cs" />
+    <Compile Include="HeikinTrend.cs" />
     <Compile Include="Lustra.cs" />
     <Compile Include="MomentumPriceChannel.cs" />
     <Compile Include="MSpinTrixVDV_PoE.cs" />
