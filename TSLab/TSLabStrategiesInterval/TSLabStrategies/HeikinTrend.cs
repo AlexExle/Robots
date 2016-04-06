@@ -35,15 +35,21 @@ namespace TSLabStrategies
         {
 
             var candles = indicator.Execute(sec);
-
-            if (ctx.IsOptimization)
-            {
+            
+            
                 for (int bar = 0; bar < sec.Bars.Count; bar++)
                 {
                     GenerateSignal(sec, candles, bar);
                 }
-            }
-            else
+                if (!ctx.IsOptimization)
+                {
+                    // Make 'ПанельГрафика1' pane
+                    TSLab.Script.IPane indicatorPane = ctx.CreatePane("ПанельГрафика1", 100D, false);
+                    indicatorPane.Visible = true;
+                    indicatorPane.AddList("Heiken Ashi", candles, CandleStyles.BAR_CANDLE, false, new Color(3, 3, 3), PaneSides.LEFT);
+                }
+            
+           /* else
             {
                 int currentBar = sec.Bars.Count - 1;
                 GenerateSignal(sec, candles, currentBar);
@@ -51,7 +57,7 @@ namespace TSLabStrategies
                 TSLab.Script.IPane indicatorPane = ctx.CreatePane("ПанельГрафика1", 100D, false);
                 indicatorPane.Visible = true;
                 indicatorPane.AddList("Heiken Ashi", candles, CandleStyles.BAR_CANDLE, false, new Color(3, 3, 3), PaneSides.LEFT);
-            }                    
+            }*/                    
         }
 
         private void GenerateSignal(ISecurity sec, ISecurity candles, int currentBar)
@@ -59,9 +65,13 @@ namespace TSLabStrategies
 
             if (DateTime.Now.Hour < 18)
             {
+                // предыдущая свеча : close больше open
                 bool SignalBuy = candles.Bars[currentBar - 1].Close > candles.Bars[currentBar - 1].Open;
+                //open текущей меньше open предыдущей
                 bool SignalSell = candles.Bars[currentBar].Open < candles.Bars[currentBar - 1].Open;
+                //текущий high = open (нет тени сверху) И предылущий close < open
                 bool SignalShort = candles.Bars[currentBar].Open == candles.Bars[currentBar].High && candles.Bars[currentBar - 1].Close < candles.Bars[currentBar - 1].Open;
+                // предыдущая свеча : close больше open
                 bool SignalCover = candles.Bars[currentBar - 1].Close > candles.Bars[currentBar - 1].Open;
                 shortPos = sec.Positions.GetLastActiveForSignal(S_S);
                 longPos = sec.Positions.GetLastActiveForSignal(L_S);
