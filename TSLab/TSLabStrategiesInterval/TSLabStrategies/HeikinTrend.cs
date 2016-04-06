@@ -8,29 +8,86 @@ using TSLab.Script.Handlers; // для работы с индикаторими 
 using TSLab.Script.Helpers; // помошники
 using TSLab.Script.Optimization; // для оптимизации
 using TSLab.Script.Realtime;
-using MMG2015.TSLab.Scripts; 
+using MMG2015.TSLab.Scripts;
 
 namespace TSLabStrategies
 {
     public class HeikinTrend : IExternalScript
     {
-
+        /// <summary>
+        /// Short signal
+        /// </summary>
+        const string S_S = "Short_";
+        /// <summary>
+        /// Long signal
+        /// </summary>
+        const string L_S = "Long_";
+        /// <summary>
+        /// Exit postfix
+        /// </summary>
+        const string E_S = "EXIT";
         public OptimProperty PercentOEquity = new OptimProperty(30, 5, 50, 5);
         public HeikenAshi indicator = new HeikenAshi();
+        public IPosition shortPos;
+        public IPosition longPos;
 
         public void Execute(IContext ctx, ISecurity sec)
         {
+
             var candles = indicator.Execute(sec);
 
             if (ctx.IsOptimization)
             {
-                return;
+                for (int bar = 0; bar < sec.Bars.Count; bar++)
+                {
+                    GenerateSignal(sec, candles, bar);
+                }
             }
-            // Make 'ПанельГрафика1' pane
-            TSLab.Script.IPane indicatorPane = ctx.CreatePane("ПанельГрафика1", 100D, false);
-            indicatorPane.Visible = true;
-            indicatorPane.AddList("Heiken Ashi", candles, CandleStyles.BAR_CANDLE, false, new Color(3, 3, 3), PaneSides.LEFT);
-        }        
+            else
+            {
+                int currentBar = sec.Bars.Count - 1;
+                GenerateSignal(sec, candles, currentBar);
+                // Make 'ПанельГрафика1' pane
+                TSLab.Script.IPane indicatorPane = ctx.CreatePane("ПанельГрафика1", 100D, false);
+                indicatorPane.Visible = true;
+                indicatorPane.AddList("Heiken Ashi", candles, CandleStyles.BAR_CANDLE, false, new Color(3, 3, 3), PaneSides.LEFT);
+            }                    
+        }
+
+        private void GenerateSignal(ISecurity sec, ISecurity candles, int currentBar)
+        {
+
+            if (DateTime.Now.Hour < 18)
+            {
+                bool SignalBuy = candles.Bars[currentBar - 1].Close > candles.Bars[currentBar - 1].Open;
+                bool SignalSell = candles.Bars[currentBar].Open < candles.Bars[currentBar - 1].Open;
+                bool SignalShort = candles.Bars[currentBar].Open == candles.Bars[currentBar].High && candles.Bars[currentBar - 1].Close < candles.Bars[currentBar - 1].Open;
+                bool SignalCover = candles.Bars[currentBar - 1].Close > candles.Bars[currentBar - 1].Open;
+                shortPos = sec.Positions.GetLastActiveForSignal(S_S);
+                longPos = sec.Positions.GetLastActiveForSignal(L_S);
+                if (SignalBuy && longPos == null)
+                {
+                    int shares = Math.Max(1, sec.PercentOfEquityShares(currentBar, sec.CurrentBalance(currentBar) * PercentOEquity.Value / 100));
+                    sec.Positions.BuyAtMarket(currentBar + 1, shares, L_S);
+                }
+                if (SignalSell && longPos != null)
+                {
+                    longPos.CloseAtMarket(currentBar + 1, L_S + E_S);
+                    //выход из лонга
+                }
+                if (SignalShort && shortPos == null)
+                {
+                    int shares = Math.Max(1, sec.PercentOfEquityShares(currentBar, sec.CurrentBalance(currentBar) * PercentOEquity.Value / 100));
+                    sec.Positions.BuyAtMarket(currentBar + 1, shares, S_S);
+                    //вход на шорт
+                }
+                if (SignalCover && shortPos != null)
+                {
+                    shortPos.CloseAtMarket(currentBar + 1, S_S + E_S);
+                    //выход из шорта
+                }
+            }
+        }
     }
 
     public class HeikenAshi : IBar2BarHandler
