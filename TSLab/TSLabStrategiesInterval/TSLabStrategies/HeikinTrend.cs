@@ -63,7 +63,7 @@ namespace TSLabStrategies
         private void GenerateSignal(ISecurity sec, ISecurity candles, int currentBar)
         {
 
-            if (DateTime.Now.Hour < 18)
+            if (candles.Bars[currentBar].Date.Hour < 18)
             {
                 // предыдущая свеча : close больше open
                 bool SignalBuy = candles.Bars[currentBar - 1].Close > candles.Bars[currentBar - 1].Open;
