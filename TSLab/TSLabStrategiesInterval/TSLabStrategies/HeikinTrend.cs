@@ -37,7 +37,7 @@ namespace TSLabStrategies
             var candles = indicator.Execute(sec);
             
             
-                for (int bar = 0; bar < sec.Bars.Count; bar++)
+                for (int bar = 1; bar < sec.Bars.Count; bar++)
                 {
                     GenerateSignal(sec, candles, bar);
                 }
