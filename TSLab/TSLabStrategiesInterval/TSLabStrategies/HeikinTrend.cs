@@ -88,7 +88,7 @@ namespace TSLabStrategies
                 if (SignalShort && shortPos == null)
                 {
                     int shares = Math.Max(1, sec.PercentOfEquityShares(currentBar, sec.CurrentBalance(currentBar) * PercentOEquity.Value / 100));
-                    sec.Positions.BuyAtMarket(currentBar + 1, shares, S_S);
+                    sec.Positions.SellAtMarket(currentBar + 1, shares, S_S);
                     //вход на шорт
                 }
                 if (SignalCover && shortPos != null)
