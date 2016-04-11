@@ -27,27 +27,49 @@ namespace TSLabStrategies
         /// </summary>
         const string E_S = "EXIT";
         public OptimProperty PercentOEquity = new OptimProperty(30, 5, 50, 5);
-        public HeikenAshi indicator = new HeikenAshi();
+        public OptimProperty RenderMode = new OptimProperty(1, 1, 3, 1);
+      
         public IPosition shortPos;
         public IPosition longPos;
 
         public void Execute(IContext ctx, ISecurity sec)
         {
 
-            var candles = indicator.Execute(sec);
+            ISecurity candles;
+            switch ((int)RenderMode)
+            {
+                case 1:
+                    {
+                        candles = new HeikenAshi().Execute(sec); 
+                    }
+                    break;
+                case 2:
+                    {
+                        candles = new HeikenAshiTSLab().Execute(sec);
+                    }
+                    break;
+                case 3:
+                    {
+                        candles = new LevykinHeikenAshi().Execute(sec);
+                    }
+                    break;
+                default:
+                    candles = new HeikenAshi().Execute(sec); 
+                    break;  
+            }
+                 
             
-            
-                for (int bar = 1; bar < sec.Bars.Count; bar++)
-                {
-                    GenerateSignal(sec, candles, bar);
-                }
-                if (!ctx.IsOptimization)
-                {
-                    // Make 'ПанельГрафика1' pane
-                    TSLab.Script.IPane indicatorPane = ctx.CreatePane("ПанельГрафика1", 100D, false);
-                    indicatorPane.Visible = true;
-                    indicatorPane.AddList("Heiken Ashi", candles, CandleStyles.BAR_CANDLE, false, new Color(3, 3, 3), PaneSides.LEFT);
-                }
+            for (int bar = 1; bar < sec.Bars.Count; bar++)
+            {
+                GenerateSignal(sec, candles, bar);
+            }
+            if (!ctx.IsOptimization)
+            {
+                // Make 'ПанельГрафика1' pane
+                TSLab.Script.IPane indicatorPane = ctx.CreatePane("ПанельГрафика1", 100D, false);
+                indicatorPane.Visible = true;
+                indicatorPane.AddList("Heiken Ashi", candles, CandleStyles.BAR_CANDLE, false, new Color(3, 3, 3), PaneSides.LEFT);
+            }
             
            /* else
             {
@@ -160,4 +182,119 @@ namespace TSLabStrategies
         }
         public IContext Context { get; set; }
     }
+
+    public class HeikenAshiTSLab : IBar2BarHandler
+    {
+        public ISecurity Execute(ISecurity source)
+        {
+            var Bars = new List<Bar>(source.Bars.Count);
+            var C = source.ClosePrices;
+            var H = source.HighPrices;
+            var L = source.LowPrices;
+            var O = source.OpenPrices;
+            IList<Bar> HA = new List<Bar>(Bars.Count);
+            IList<double> Cn = new List<double>(C.Count);
+            IList<double> Hn = new List<double>(C.Count);
+            IList<double> Ln = new List<double>(C.Count);
+            IList<double> On = new List<double>(C.Count);
+            double Open, High, Low, Close;
+
+            for (int i = 0; i < C.Count; i++)
+            {
+                if (i < 1)
+                {
+                    Open = 0;
+                    Close = 0;
+                    Low = 0;
+                    High = 0;
+                }
+                else
+                {
+                    Open = (O[i - 1] + C[i - 1]) / 2;
+                    Close = (C[i] + O[i] + L[i] + H[i]) / 4;
+                    Low = Math.Min(L[i], Math.Min(Open, Close));
+                    High = Math.Max(H[i], Math.Max(Open, Close));
+                }
+                On.Add(Open);
+                Cn.Add(Close);
+                Ln.Add(Low);
+                Hn.Add(High);
+            }
+
+            int j = 0;
+            foreach (var bar in source.Bars)
+            {
+                var hav = new Bar(bar.Color, bar.Date,
+                                  On[j],
+                                  Hn[j],
+                                  Ln[j],
+                                  Cn[j],
+                                  bar.Volume);
+                HA.Add(hav);
+                j++;
+            }
+
+            return source.CloneAndReplaceBars(HA);
+        }
+        public IContext Context { get; set; }
+    }
+
+    public class LevykinHeikenAshi : IBar2BarHandler
+    {
+
+        public ISecurity Execute(ISecurity source)
+        {
+            var Bars = new List<Bar>(source.Bars.Count);
+            var C = source.ClosePrices;
+            var H = source.HighPrices;
+            var L = source.LowPrices;
+            var O = source.OpenPrices;
+            IList<Bar> HA = new List<Bar>(Bars.Count);
+            IList<double> Cn = new List<double>(C.Count);
+            IList<double> Hn = new List<double>(C.Count);
+            IList<double> Ln = new List<double>(C.Count);
+            IList<double> On = new List<double>(C.Count);
+            
+            //ctx.GetData(
+
+            for (int i = 0; i < C.Count; i++)
+            {
+                Cn[i] = (O[i] + H[i] + L[i] + C[i]) / 4;
+            }
+            
+            var ema = new EMA();
+            ema.Period = 3;
+            Cn = ema.Execute(Cn);
+            var ama = new AMA();
+            ama.Period = 1;
+            List<double> list = new List<double>();
+            for (int i = 0; i < Cn.Count; i++)
+            {
+                On.Add(i == 0 ? 0 : Cn[i-1]);
+            }
+            On = ama.Execute(On);
+            for (int i = 0; i < Cn.Count; i++)
+            {
+               Hn.Add(Math.Max(Cn[i], On[i]));
+               Ln.Add(Math.Min(Cn[i], On[i]));
+            }           
+
+            int j = 0;
+            foreach (var bar in source.Bars)
+            {
+                var hav = new Bar(bar.Color, bar.Date,
+                                  On[j],
+                                  Hn[j],
+                                  Ln[j],
+                                  Cn[j],
+                                  bar.Volume);
+                HA.Add(hav);
+                j++;
+            }
+
+            return source.CloneAndReplaceBars(HA);
+        }
+        public IContext Context { get; set; }
+    }
+
 }
