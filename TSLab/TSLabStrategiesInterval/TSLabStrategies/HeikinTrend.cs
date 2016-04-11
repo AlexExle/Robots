@@ -53,6 +53,11 @@ namespace TSLabStrategies
                         candles = new LevykinHeikenAshi().Execute(sec);
                     }
                     break;
+                case 4:
+                    {
+                        candles = new LevykinHeikenAshi2().Execute(sec);
+                    }
+                    break;
                 default:
                     candles = new HeikenAshi().Execute(sec); 
                     break;  
@@ -278,6 +283,58 @@ namespace TSLabStrategies
                Hn.Add(Math.Max(H[i], Math.Max(Cn[i], On[i])));
                Ln.Add(Math.Min(L[i], Math.Min(Cn[i], On[i])));
             }           
+
+            int j = 0;
+            foreach (var bar in source.Bars)
+            {
+                var hav = new Bar(bar.Color, bar.Date,
+                                  On[j],
+                                  Hn[j],
+                                  Ln[j],
+                                  Cn[j],
+                                  bar.Volume);
+                HA.Add(hav);
+                j++;
+            }
+
+            return source.CloneAndReplaceBars(HA);
+        }
+        public IContext Context { get; set; }
+    }
+
+    public class LevykinHeikenAshi2 : IBar2BarHandler
+    {
+
+        public ISecurity Execute(ISecurity source)
+        {
+            var Bars = new List<Bar>(source.Bars.Count);
+            var C = source.ClosePrices;
+            var H = source.HighPrices;
+            var L = source.LowPrices;
+            var O = source.OpenPrices;
+            IList<Bar> HA = new List<Bar>(Bars.Count);
+            IList<double> Cn = new List<double>(C.Count);
+            IList<double> Hn = new List<double>(C.Count);
+            IList<double> Ln = new List<double>(C.Count);
+            IList<double> On = new List<double>(C.Count);
+
+            //ctx.GetData(
+
+            for (int i = 0; i < C.Count; i++)
+            {
+                Cn.Add((O[i] + H[i] + L[i] + C[i]) / 4);
+            }
+
+            var ema = new EMA();
+            ema.Period = 3;
+            Cn = ema.Execute(Cn);
+           
+            for (int i = 0; i < Cn.Count; i++)
+            {
+                On.Add(i == 0 ? O[i] :(O[i - 1] + C[i - 1]) / 2);
+                Hn.Add(Math.Max(H[i], Math.Max(Cn[i], On[i])));
+                Ln.Add(Math.Min(L[i], Math.Min(Cn[i], On[i])));
+            }
 
             int j = 0;
             foreach (var bar in source.Bars)
