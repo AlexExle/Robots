@@ -259,7 +259,7 @@ namespace TSLabStrategies
 
             for (int i = 0; i < C.Count; i++)
             {
-                Cn[i] = (O[i] + H[i] + L[i] + C[i]) / 4;
+                Cn.Add((O[i] + H[i] + L[i] + C[i]) / 4);
             }
             
             var ema = new EMA();
@@ -267,16 +267,16 @@ namespace TSLabStrategies
             Cn = ema.Execute(Cn);
             var ama = new AMA();
             ama.Period = 1;
-            List<double> list = new List<double>();
+        
             for (int i = 0; i < Cn.Count; i++)
             {
-                On.Add(i == 0 ? 0 : Cn[i-1]);
+                On.Add(i == 0 ? C[i] : Cn[i-1]);
             }
             On = ama.Execute(On);
             for (int i = 0; i < Cn.Count; i++)
             {
-               Hn.Add(Math.Max(Cn[i], On[i]));
-               Ln.Add(Math.Min(Cn[i], On[i]));
+               Hn.Add(Math.Max(H[i], Math.Max(Cn[i], On[i])));
+               Ln.Add(Math.Min(L[i], Math.Min(Cn[i], On[i])));
             }           
 
             int j = 0;
