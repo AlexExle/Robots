@@ -331,7 +331,7 @@ namespace TSLabStrategies
            
             for (int i = 0; i < Cn.Count; i++)
             {
-                On.Add(i == 0 ? O[i] :(O[i - 1] + C[i - 1]) / 2);
+                On.Add(i == 0 ? O[i] : (On[i - 1] + Cn[i - 1]) / 2);
                 Hn.Add(Math.Max(H[i], Math.Max(Cn[i], On[i])));
                 Ln.Add(Math.Min(L[i], Math.Min(Cn[i], On[i])));
             }
