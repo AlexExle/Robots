@@ -414,13 +414,14 @@ function onNewCandle()
 	{
 	  
 	  	var qaunt = lotCount;
-		if (pos != 0)
-		{
-			qaunt = qaunt*2;			
-		}
+		
 	    // previous candle close > open
 		if (line[0][-1] > line[1][-1] && pos < 1)
-		{							
+		{		
+			if (pos != 0)
+			{
+				qaunt = qaunt*2;			
+			}		
 			setOrder(OP_BUY, 0, qaunt, 0, 0 );
 			if (pos = 0)
 			{
