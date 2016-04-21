@@ -1,24 +1,18 @@
 // Атр канал с паленым транзаковским АТР-ом Не используется
 
-#samewindow
-//stairway
-#line 0 solid #911e42 
 
-#line 1 dashed  #911e42 
-
-#line 2 dashed  #911e42 
-
-#line 3 solid #911e42 
-
+//close
+#line 0 dashed  #000000 
+//open
+#line 1 solid  #000000 
+//high
+#line 2 solid #008000
+//low
+#line 3 solid #8B0000 
+//to close
 #line 4 nodraw
- 
-extern multiplier = 2;
 
-extern atrPeriod = 50;
-
-extern percentOfQuantuty = 22;
-
-extern priceStepCount = 5;
+extern lotCount = 0;
 
 extern lotSize = 0;
 
@@ -55,6 +49,8 @@ static file;
 static freeMoney = 0;
 
 static waitWhileActiveOrder = 0;
+
+static pos = 0;
  
 function getFreeMoney()
 {
@@ -228,12 +224,12 @@ function getSecLotSize()
 	}
 }
 
-function calcQuantity(var price)
-{
-     WriteLogMessage("freeMoney " + freeMoney + " percentOfQuantuty " + percentOfQuantuty + " getSecLotSize " + getSecLotSize() + " goPrice " + goPrice );
-	WriteLogMessage("Calculated quantity for order: " + floor((freeMoney * (percentOfQuantuty/100))/(getSecLotSize() * (goPrice))));
-	return floor((freeMoney * (percentOfQuantuty/100))/(getSecLotSize() * (goPrice)));
-}
+//function calcQuantity(var price)
+//{
+ //    WriteLogMessage("freeMoney " + freeMoney + " percentOfQuantuty " + percentOfQuantuty + " getSecLotSize " + getSecLotSize() + " goPrice " + goPrice );
+//	WriteLogMessage("Calculated quantity for order: " + floor((freeMoney * (percentOfQuantuty/100))/(getSecLotSize() * (goPrice))));
+//	return floor((freeMoney * (percentOfQuantuty/100))/(getSecLotSize() * (goPrice)));
+//}
 
 function setOrder(var orderType, var price, var quantity, var condition, var conditionPrice)
 {
@@ -281,8 +277,8 @@ function updateOrders()
 	if (getSecBalanceWrapper() > 0)
 	{
 		activationPrice = lowPoint;
-		var quantity = calcQuantity(lowPoint);
-		enterPrice = lowPoint - (getSecPriceStep()* priceStepCount);
+		var quantity = 1;
+		enterPrice = lowPoint - (getSecPriceStep()* 1);
 		curShortOrder = setOrder(OP_SELL, enterPrice, 1, COND_ASK_OR_LAST, activationPrice );
 		if (not curShortOrder) 
 		{
@@ -296,8 +292,8 @@ function updateOrders()
 	if (getSecBalanceWrapper() < 0)
 	{			
 		activationPrice = highPoint ;
-		enterPrice = highPoint + (getSecPriceStep()* priceStepCount);
-		var quantity = calcQuantity(lowPoint);
+		enterPrice = highPoint + (getSecPriceStep()* 1);
+		var quantity = 1;
 		curLongOrder = setOrder(OP_BUY, enterPrice, 1, COND_BID_OR_LAST, activationPrice);
 		if (not curLongOrder) 
 		{
@@ -311,8 +307,8 @@ function updateOrders()
 	if(getSecBalanceWrapper() == 0)
 	{
 		activationPrice = lowPoint;
-		var quantity = calcQuantity(lowPoint);
-		enterPrice = lowPoint - (getSecPriceStep()* priceStepCount);
+		var quantity = 1;
+		enterPrice = lowPoint - (getSecPriceStep()* 1);
 		curShortOrder = setOrder(OP_SELL, enterPrice, 1, COND_ASK_OR_LAST, activationPrice );
 		if (not curShortOrder) 
 		{
@@ -324,8 +320,8 @@ function updateOrders()
 		}
 		
 		activationPrice = highPoint ;
-		enterPrice = highPoint + (getSecPriceStep()* priceStepCount);
-		quantity = calcQuantity(lowPoint);
+		enterPrice = highPoint + (getSecPriceStep()* 1);
+		quantity = 1;
 		curLongOrder = setOrder(OP_BUY, enterPrice, 1, COND_BID_OR_LAST, activationPrice);
 		if (not curLongOrder) 
 		{
@@ -373,7 +369,8 @@ function onTrade(var id)
 function calc()
 {
 	//close
-	line[0] = MovAvg(ind_ema, 3, (open+high+low+close)/4);
+	line[4] = (open+high+low+close)/4;
+	line[0] = MovAvg(ind_ema, 3, line[4]);
 	if (count > 0)
 	{	
 		//open
@@ -395,7 +392,7 @@ function calc()
 	}
 	
 	//high
-	line[2] = h
+	line[2] = h;
 	
 	var l = line[0];
 	if ( line[1] < l)
@@ -408,36 +405,47 @@ function calc()
 	}
 	
 	//low
-	line[3] = l
+	line[3] = l;
 }
 
 function onNewCandle() 
-{		
-	if(getHour(getCandleTime()) == 12 && getMinute(getCandleTime()) == 0 && !HasActiveOrders())
-	{		
-		updateOrders();
-		requestFORTSPositions(clientId);	
-	}
-	if(getHour(getCandleTime()) == 14 && getMinute(getCandleTime()) == 0 && !HasActiveOrders())
+{			  
+	if(getHour(getCandleTime()) < 18)
 	{
-		updateOrders();
-		requestFORTSPositions(clientId);	
-	}
-	if(getHour(getCandleTime()) == 16 && getMinute(getCandleTime()) == 0 && !HasActiveOrders())
-	{
-		updateOrders();
-		requestFORTSPositions(clientId);	
-	}
-	if(getHour(getCandleTime()) == 18 && getMinute(getCandleTime()) == 0 && !HasActiveOrders())
-	{
-		updateOrders();
-		requestFORTSPositions(clientId);	
-	}
-	if(getHour(getCandleTime()) == 20 && getMinute(getCandleTime()) == 0 && !HasActiveOrders())
-	{
-		updateOrders();
-		requestFORTSPositions(clientId);	
-	}
+	  
+	  	var qaunt = lotCount;
+		if (pos != 0)
+		{
+			qaunt = qaunt*2;			
+		}
+	    // previous candle close > open
+		if (line[0][-1] > line[1][-1] && pos < 1)
+		{							
+			setOrder(OP_BUY, 0, qaunt, 0, 0 );
+			if (pos = 0)
+			{
+				signal::alert("Signal fo BUY");
+			}
+			else
+			{
+				signal::alert("Signal fo Close SHORT");
+			}
+			pos = 1;			
+		}		
+		// open < open[-1]
+		if (line[1] < line[1][-1] && pos == 1)
+		{
+			setOrder(OP_SELL, 0, qaunt, 0, 0 );
+			pos = 0;
+			signal::alert("Signal fo Close BUY");
+		}
+		//open == high && close[-1] < open[-1]
+		if (line[1] == line[2] && line[0][-1] < line[1][-1] && pos == 0)
+		{
+			setOrder(OP_SELL, 0, qaunt, 0, 0 );
+			signal::alert("Signal fo SHORT");
+		}
+	}           
 }
 
 // BUTTONS FOR TESTING //
