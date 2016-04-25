@@ -423,7 +423,7 @@ function onNewCandle()
 				qaunt = qaunt*2;			
 			}		
 			setOrder(OP_BUY, 0, qaunt, 0, 0 );
-			if (pos = 0)
+			if (pos == 0)
 			{
 				signal::alert("Signal fo BUY");
 			}
