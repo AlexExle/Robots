@@ -422,7 +422,7 @@ function onNewCandle()
 			{
 				qaunt = qaunt*2;			
 			}		
-			setOrder(OP_BUY, 0, qaunt, 0, 0 );
+			setOrder(OP_BUY, open, qaunt, 0, 0 );
 			if (pos == 0)
 			{
 				signal::alert("Signal fo BUY");
@@ -436,7 +436,7 @@ function onNewCandle()
 		// open < open[-1]
 		if (line[1] < line[1][-1] && pos == 1)
 		{
-			setOrder(OP_SELL, 0, qaunt, 0, 0 );
+			setOrder(OP_SELL, open, qaunt, 0, 0 );
 			pos = 0;
 			signal::alert("Signal fo Close BUY");
 		}
@@ -445,7 +445,7 @@ function onNewCandle()
 		diff = abs(diff);
 		if ( diff < 100 && line[0][-1] < line[1][-1] && pos == 0)
 		{
-			setOrder(OP_SELL, 0, qaunt, 0, 0 );
+			setOrder(OP_SELL, open, qaunt, 0, 0 );
 			signal::alert("Signal fo SHORT");
 		}
 	}           
