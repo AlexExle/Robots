@@ -378,7 +378,7 @@ function calc()
 	}
 	if (count == 0)
 	{
-		line[1] =  (open + line[0][-1]) / 2;
+		line[1] = open;
 	}
 	
 	var h = line[0];
@@ -415,6 +415,7 @@ function onNewCandle()
 	  
 	  	var qaunt = lotCount;
 		
+		   WriteLogMessage("pos " + pos + " close-1=" + line[0][-1] + " open-1=" + line[1][-1]);
 	    // previous candle close > open
 		if (line[0][-1] > line[1][-1] && pos < 1)
 		{		
@@ -433,6 +434,7 @@ function onNewCandle()
 			}
 			pos = 1;			
 		}		
+		WriteLogMessage("open=" + line[1] + "open-1" + line[1][-1]);
 		// open < open[-1]
 		if (line[1] < line[1][-1] && pos == 1)
 		{
@@ -443,6 +445,7 @@ function onNewCandle()
 		//open == high && close[-1] < open[-1]
 		var diff = line[1] - line[2];
 		diff = abs(diff);
+		WriteLogMessage("diff=" + diff + " close-1=" + line[0][-1] + " open-1=" + line[1][-1]);
 		if ( diff < 100 && line[0][-1] < line[1][-1] && pos == 0)
 		{
 			setOrder(OP_SELL, open, qaunt, 0, 0 );
