@@ -55,7 +55,7 @@ namespace TSLabStrategies
             firstValidValue = Math.Max(firstValidValue, period);           
             //bool signalBuy = false; bool signalShort = false;
 
-            for (int bar = 0; bar < sec.Bars.Count; bar++)
+          /*  for (int bar = 0; bar < sec.Bars.Count; bar++)
             {
                 // signalBuy = compressedSec.Bars[bar].High > highLevelSeries2[bar];
                 // signalShort = compressedSec.Bars[bar].Low < lowLevelSeries2[bar];
@@ -99,7 +99,7 @@ namespace TSLabStrategies
                     }
 
                 }
-            }
+            }*/
 
             IPane pricePane = ctx.First;
             pricePane.AddList("sec", sec, CandleStyles.BAR_CANDLE, true, true, true, true, 0x0000a0, PaneSides.RIGHT);
