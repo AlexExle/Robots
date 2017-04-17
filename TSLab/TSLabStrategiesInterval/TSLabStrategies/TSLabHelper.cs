@@ -22,8 +22,7 @@ namespace MMG2015.TSLab.Scripts
             {
                 // находимся мы или нет в режиме реал торговли
                 return rtSecurity.EstimatedBalance; // узнаем в ТСЛАБ сумму счета
-            }
-
+            }            
             return sec.InitDeposit + sec.Positions.CurrentPnL(bar);
         }
 

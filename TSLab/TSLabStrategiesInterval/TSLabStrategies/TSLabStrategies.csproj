@@ -53,6 +53,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArmoredIntaday.cs" />
+    <Compile Include="ATRChannelMinMaxFilter.cs" />
+    <Compile Include="ATRChannelTake.cs" />
+    <Compile Include="Sigma.cs" />
     <Compile Include="ArmoredIntaday2.cs" />
     <Compile Include="Fractal.cs" />
     <Compile Include="ArmoredIntadayExp2.cs" />
@@ -60,7 +63,6 @@
     <Compile Include="ATRFloatChannel.cs" />
     <Compile Include="ATRTrio.cs" />
     <Compile Include="ArmoredIntadayExp.cs" />
-    <Compile Include="ArmoredFractal.cs" />
     <Compile Include="DonchianChannel.cs" />
     <Compile Include="DoubleDonchian.cs" />
     <Compile Include="DonVDV.cs" />
