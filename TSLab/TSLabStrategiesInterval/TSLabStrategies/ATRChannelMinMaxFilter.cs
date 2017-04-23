@@ -29,7 +29,7 @@ namespace TSLabStrategies
         }
 
         public void Execute(IContext ctx, ISecurity sec)
-        {
+        {                       
             List<DateTime> dates = new List<DateTime>();
             foreach (var i in timesToUpdateLeveles)
             {
@@ -60,7 +60,8 @@ namespace TSLabStrategies
             int day = 0;
             for (int bar = 0; bar < sec.Bars.Count; bar++)
             {
-                if (IsDateInArray(sec.Bars[bar].Date, dates))
+                //if (IsDateInArray(sec.Bars[bar].Date, dates))
+                if (IsLastCandleInDay(sec.Bars, sec.Bars[bar], bar))
                 {
                     calcPrice = sec.Bars[bar].Close;
                     prevDayLow = day > 1 ? daySec.LowPrices[day] : daySec.LowPrices[0];
@@ -115,8 +116,8 @@ namespace TSLabStrategies
             // Отрисовка PC
             pricePane.AddList("High Channel", highLevelSeries2, ListStyles.LINE, 0x0000a0, LineStyles.DOT, PaneSides.RIGHT);
             pricePane.AddList("Low Channel", lowLevelSeries2, ListStyles.LINE, 0x0000a0, LineStyles.DOT, PaneSides.RIGHT);
-            pricePane.AddList("Prev Day High Level", highPrefDayLevel, ListStyles.LINE, 0x0000a0, LineStyles.DOT, PaneSides.RIGHT);
-            pricePane.AddList("Prev Day Low Level", lowPrefDayLevel, ListStyles.LINE, 0x0000a0, LineStyles.DOT, PaneSides.RIGHT);
+            pricePane.AddList("Prev Day High Level", highPrefDayLevel, ListStyles.LINE, new Color(0,100,30), LineStyles.DOT, PaneSides.RIGHT);
+            pricePane.AddList("Prev Day Low Level", lowPrefDayLevel, ListStyles.LINE, new Color(1000, 0, 30), LineStyles.DOT, PaneSides.RIGHT);
 
         }
 
@@ -131,5 +132,18 @@ namespace TSLabStrategies
             return false;
         }
 
+        protected bool IsLastCandleInDay(IList<Bar> bars, Bar bar, int barNumber)
+        {
+            var nextBar = bars.Count > barNumber+1 ? bars[barNumber+1] : null;
+
+            if (nextBar != null)
+            {
+                return nextBar.Date.Date > bar.Date;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }
