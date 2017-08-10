@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ExportScriptData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Code><![CDATA[<?xml version="1.0" encoding="utf-16"?>
+<GraphDataBase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="GraphViewData">
+  <EditData VersionString="2.2" TemplateClass="Script">
+    <ViewModel>
+      <Model>
+        <Block Key="Источник1" Category="SECURITY" Location="69 0" TypeName="SecuritySourceItem">
+          <EditItem CodeName="Источник1" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" />
+        </Block>
+        <Pane Key="Главная" Category="GraphPane" Location="72 258" Order="0" HideLegend="false" SizePct="70" LeftAxisPrecision="0" RightAxisPrecision="0" />
+        <Block Key="ВнешнийСкрипт1" Category="Usual" Location="431 168.72333333333333" TypeName="ExternalScriptItem">
+          <EditItem CodeName="ВнешнийСкрипт1" IsParametersVisible="true" OnlyValueHandlersCanUsed="false">
+            <Scripts>
+              <Script>E:\repo\trunk\TSLab\TSLabStrategiesInterval\TSLabStrategies\TSLabHelper.cs</Script>
+              <Script>E:\repo\trunk\TSLab\TSLabStrategiesInterval\TSLabStrategies\MomentumPriceChannel.cs</Script>
+            </Scripts>
+          </EditItem>
+        </Block>
+        <Block Key="АбсолютКомисси1" Category="Usual" Location="439 73.723333333333329" TypeName="CommissionItem">
+          <EditItem CodeName="АбсолютКомисси1" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.Script.Handlers.AbsolutCommission, TSLab.Script.Handlers, Version=1.2.19.0, Culture=neutral, PublicKeyToken=null">
+            <Parameters>
+              <Parameter Name="Commission" TypeName="Double" Value="0" />
+            </Parameters>
+          </EditItem>
+        </Block>
+        <GraphLink From="Источник1" To="Главная" FromPort="Out" ToPort="RIGHT" Category="ChartCandleLink">
+          <Data>
+            <GraphData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ListStyle="LINE" CandleStyle="BAR_CANDLE" LineStyle="SOLID" Color="255" AltColor="255" Opacity="0" HideLastValue="false" Thickness="1" PaneSide="RIGHT" Visible="true" ShowTrades="true" ShowPositionStop="true" ShowPositionText="true" ShowPositionIcon="true" />
+          </Data>
+        </GraphLink>
+        <Link From="Источник1" To="ВнешнийСкрипт1" FromPort="Out" ToPort="Src" ToPortNum="0" />
+        <Link From="Источник1" To="АбсолютКомисси1" FromPort="Out" ToPort="Src" ToPortNum="0" />
+      </Model>
+    </ViewModel>
+  </EditData>
+  <Options xsi:type="LabOptions">
+    <BarSize>6</BarSize>
+    <Indent>100</Indent>
+    <HideValues>false</HideValues>
+    <IntervalBase>MINUTE</IntervalBase>
+    <Interval>30</Interval>
+    <RecalcInterval>INTERVAL</RecalcInterval>
+    <DateFrom>2014-01-01T00:00:00</DateFrom>
+    <UseDateFrom>true</UseDateFrom>
+    <DateTo>2016-03-03T01:00:00</DateTo>
+    <UseDateTo>false</UseDateTo>
+    <MaxDays>0</MaxDays>
+    <SessionBegin>2000-01-01T00:00:00</SessionBegin>
+    <SessionEnd>2000-01-01T00:00:00</SessionEnd>
+    <DecompressMethod>Method1</DecompressMethod>
+    <TradeFromBar>0</TradeFromBar>
+    <MaxCandels>0</MaxCandels>
+    <RtUpdates>false</RtUpdates>
+    <CalcForEachSecurity>true</CalcForEachSecurity>
+    <NotUsePositions>false</NotUsePositions>
+    <InitDeposit>0</InitDeposit>
+    <LabCalcType>Default</LabCalcType>
+    <TradeMode>All</TradeMode>
+    <SaveLayout>false</SaveLayout>
+  </Options>
+  <Mappings>
+    <Sources>
+      <Source DataSourceName="Finam" SecurityId="SiH6:4" Name="Источник1">
+        <Records />
+      </Source>
+    </Sources>
+    <Parameters>
+      <Parameter xsi:type="OptimData" Name="MM_Period" InvariantName="MM_Period" ItemName="ВнешнийСкрипт1" CodeName="ВнешнийСкрипт1_MM_Period" Visible="true" UsedInOptimization="false" Value="25" TypeName="Double" MinValue="10" MaxValue="100" Step="5" />
+      <Parameter xsi:type="OptimData" Name="PercentOEquity" InvariantName="PercentOEquity" ItemName="ВнешнийСкрипт1" CodeName="ВнешнийСкрипт1_PercentOEquity" Visible="true" UsedInOptimization="false" Value="30" TypeName="Double" MinValue="5" MaxValue="50" Step="5" />
+      <Parameter xsi:type="OptimData" Name="high_Period" InvariantName="high_Period" ItemName="ВнешнийСкрипт1" CodeName="ВнешнийСкрипт1_high_Period" Visible="true" UsedInOptimization="false" Value="13" TypeName="Double" MinValue="10" MaxValue="100" Step="5" />
+    </Parameters>
+  </Mappings>
+  <Iterations>200</Iterations>
+  <OptParametersRecords>
+    <OptParametersRecord>
+      <Mappings>
+        <Sources>
+          <Source DataSourceName="ФинамБашев" SecurityId="SiH6:4" Name="Источник1">
+            <Records />
+          </Source>
+        </Sources>
+        <Parameters>
+          <Parameter xsi:type="OptimData" Name="CurrentBarParam" InvariantName="CurrentBarParam" ItemName="ВнешнийСкрипт1" CodeName="ВнешнийСкрипт1_CurrentBarParam" Visible="true" UsedInOptimization="false" Value="0" TypeName="Double" MinValue="0" MaxValue="1" Step="1" />
+          <Parameter xsi:type="OptimData" Name="FractalParam" InvariantName="FractalParam" ItemName="ВнешнийСкрипт1" CodeName="ВнешнийСкрипт1_FractalParam" Visible="true" UsedInOptimization="false" Value="5" TypeName="Double" MinValue="1" MaxValue="20" Step="1" />
+          <Parameter xsi:type="OptimData" Name="LeftRight" InvariantName="LeftRight" ItemName="ВнешнийСкрипт1" CodeName="ВнешнийСкрипт1_LeftRight" Visible="true" UsedInOptimization="false" Value="5" TypeName="Double" MinValue="1" MaxValue="20" Step="1" />
+          <Parameter xsi:type="OptimData" Name="MaxPositions" InvariantName="MaxPositions" ItemName="ВнешнийСкрипт1" CodeName="ВнешнийСкрипт1_MaxPositions" Visible="true" UsedInOptimization="false" Value="2" TypeName="Double" MinValue="1" MaxValue="4" Step="1" />
+          <Parameter xsi:type="OptimData" Name="Shares" InvariantName="Shares" ItemName="ВнешнийСкрипт1" CodeName="ВнешнийСкрипт1_Shares" Visible="true" UsedInOptimization="false" Value="1" TypeName="Double" MinValue="1" MaxValue="1" Step="1" />
+        </Parameters>
+      </Mappings>
+      <Comment>d</Comment>
+      <Created>2016-01-05T01:49:22.117+03:00</Created>
+    </OptParametersRecord>
+  </OptParametersRecords>
+</GraphDataBase>]]></Code>
+  <Settings2><![CDATA[<?xml version="1.0" encoding="utf-16"?>
+<LabSettings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <RealtimeSettings>
+    <Options>
+      <DefEntryApprove>false</DefEntryApprove>
+      <DefExitApprove>false</DefExitApprove>
+      <AutoEntryBars>0</AutoEntryBars>
+      <AutoCloseBars>0</AutoCloseBars>
+      <Slippage>0</Slippage>
+      <SlippagePct>0</SlippagePct>
+      <TakeProfitNoSlippage>false</TakeProfitNoSlippage>
+      <OpenPositionNoSlippage>false</OpenPositionNoSlippage>
+      <ByMarketAsLimt>false</ByMarketAsLimt>
+      <InvalidStopsByMarket>false</InvalidStopsByMarket>
+      <RemoveInactivePositions>true</RemoveInactivePositions>
+      <WarnSkippedOpenPositions>true</WarnSkippedOpenPositions>
+      <NotOpenIfHasSkippedExit>false</NotOpenIfHasSkippedExit>
+      <NoCalcInfo>false</NoCalcInfo>
+      <MaxBarsForSignal>0</MaxBarsForSignal>
+      <WaitExecutionExitBars>0</WaitExecutionExitBars>
+      <WaitExecutionEntryBars>0</WaitExecutionEntryBars>
+      <SimulatePositionOrdering>true</SimulatePositionOrdering>
+    </Options>
+    <AppearanceOptions>
+      <Background>
+        <A>255</A>
+        <R>245</R>
+        <G>245</G>
+        <B>245</B>
+        <ScA>1</ScA>
+        <ScR>0.913098633</ScR>
+        <ScG>0.913098633</ScG>
+        <ScB>0.913098633</ScB>
+      </Background>
+      <Foreground>
+        <A>255</A>
+        <R>0</R>
+        <G>0</G>
+        <B>0</B>
+        <ScA>1</ScA>
+        <ScR>0</ScR>
+        <ScG>0</ScG>
+        <ScB>0</ScB>
+      </Foreground>
+      <ShowCaption>true</ShowCaption>
+      <FontSize>11</FontSize>
+    </AppearanceOptions>
+  </RealtimeSettings>
+</LabSettings>]]></Settings2>
+</ExportScriptData>

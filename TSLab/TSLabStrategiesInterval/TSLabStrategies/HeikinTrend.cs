@@ -93,7 +93,7 @@ namespace TSLabStrategies
             if (candles.Bars[currentBar].Date.Hour < 18)
             {
                 // предыдущая свеча : close больше open
-                bool SignalBuy = candles.Bars[currentBar - 1].Close > candles.Bars[currentBar - 1].Open;
+                bool SignalBuy = candles.Bars[currentBar].Open == candles.Bars[currentBar].Low && candles.Bars[currentBar - 1].Close > candles.Bars[currentBar - 1].Open;
                 //open текущей меньше open предыдущей
                 bool SignalSell = candles.Bars[currentBar].Open < candles.Bars[currentBar - 1].Open;
                 //текущий high = open (нет тени сверху) И предылущий close < open

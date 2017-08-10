@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ExportScriptData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Code><![CDATA[<?xml version="1.0" encoding="utf-16"?>
+<GraphDataBase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="GraphViewData">
+  <EditData VersionString="2.2" TemplateClass="Script">
+    <ViewModel>
+      <Model>
+        <Block Key="Источник1" Category="SECURITY" Location="83 11.000000000000004" TypeName="SecuritySourceItem">
+          <EditItem CodeName="Источник1" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" />
+        </Block>
+        <Pane Key="Главная" Category="GraphPane" Location="18 134.99999999999997" Order="0" HideLegend="false" SizePct="70" LeftAxisPrecision="0" RightAxisPrecision="0" />
+        <Block Key="LE" Category="Usual" Location="1193 155.7233333333333" TypeName="ClosePositionByMarketItem">
+          <EditItem CodeName="LE" IsParametersVisible="false" OnlyValueHandlersCanUsed="true" />
+        </Block>
+        <Block Key="Long" Category="Usual" Location="1014.8966666666668 33.723333333333329" TypeName="OpenPositionByMarketItem">
+          <EditItem CodeName="Long" IsParametersVisible="false" OnlyValueHandlersCanUsed="true">
+            <Parameters>
+              <Parameter Name="Shares" TypeName="Double" Value="1" />
+              <Parameter Name="Long" TypeName="Boolean" Value="true" />
+            </Parameters>
+          </EditItem>
+        </Block>
+        <Block Key="S" Category="Usual" Location="976.89666666666676 313.72333333333336" TypeName="OpenPositionByMarketItem">
+          <EditItem CodeName="S" IsParametersVisible="false" OnlyValueHandlersCanUsed="true">
+            <Parameters>
+              <Parameter Name="Shares" TypeName="Double" Value="1" />
+              <Parameter Name="Long" TypeName="Boolean" Value="false" />
+            </Parameters>
+          </EditItem>
+        </Block>
+        <Block Key="SE" Category="Usual" Location="1232.8966666666668 443.72333333333336" TypeName="ClosePositionByMarketItem">
+          <EditItem CodeName="SE" IsParametersVisible="false" OnlyValueHandlersCanUsed="true" />
+        </Block>
+        <Block Key="C" Category="Usual" Location="336 -16.2766666666667" TypeName="ConverterItem">
+          <EditItem CodeName="C" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.Script.Handlers.Close, TSLab.Script.Handlers, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null" />
+        </Block>
+        <Block Key="O" Category="Usual" Location="333 35.723333333333329" TypeName="ConverterItem">
+          <EditItem CodeName="O" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.Script.Handlers.Open, TSLab.Script.Handlers, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null" />
+        </Block>
+        <Block Key="y" Category="Usual" Location="333 86.723333333333329" TypeName="ConverterItem">
+          <EditItem CodeName="y" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.Script.Handlers.ConstGen, TSLab.Script.Handlers, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null">
+            <Parameters>
+              <Parameter Name="Value" TypeName="Double" Value="100" />
+            </Parameters>
+          </EditItem>
+        </Block>
+        <Block Key="И1" Category="Usual" Location="858 102.72333333333333" TypeName="TwoOrMoreInputsItem">
+          <EditItem CodeName="И1" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.Script.Handlers.And, TSLab.Script.Handlers, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null" />
+        </Block>
+        <Block Key="B1" Category="Formula" Location="521 -21.276666666666642" TypeName="BoolCustomHandlerItem" Width="120" Height="60" OpenParams="false">
+          <EditItem CodeName="B1" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.ScriptEngine.Template.BoolCustomHandlerItem+Handler, TSLab.ScriptEngine, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null">
+            <Parameters>
+              <Parameter Name="Expression" TypeName="String" Value="C&gt;(O+y)" />
+              <Parameter Name="StartIndex" TypeName="Int32" Value="20" />
+            </Parameters>
+          </EditItem>
+        </Block>
+        <Block Key="B4" Category="Formula" Location="522 48.723333333333329" TypeName="BoolCustomHandlerItem" Width="160" Height="60" OpenParams="false">
+          <EditItem CodeName="B4" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.ScriptEngine.Template.BoolCustomHandlerItem+Handler, TSLab.ScriptEngine, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null">
+            <Parameters>
+              <Parameter Name="Expression" TypeName="String" Value="C[i-1]&lt;C[i-2]" />
+              <Parameter Name="StartIndex" TypeName="Int32" Value="20" />
+            </Parameters>
+          </EditItem>
+        </Block>
+        <Block Key="B5" Category="Formula" Location="525 114.7233333333333" TypeName="BoolCustomHandlerItem" Width="160" Height="60" OpenParams="false">
+          <EditItem CodeName="B5" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.ScriptEngine.Template.BoolCustomHandlerItem+Handler, TSLab.ScriptEngine, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null">
+            <Parameters>
+              <Parameter Name="Expression" TypeName="String" Value="C&gt;H[i-1]&amp;C&gt;H[i-2]&amp;C&gt;H[i-3]" />
+              <Parameter Name="StartIndex" TypeName="Int32" Value="20" />
+            </Parameters>
+          </EditItem>
+        </Block>
+        <Block Key="L" Category="Usual" Location="281 548.72333333333336" TypeName="ConverterItem">
+          <EditItem CodeName="L" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.Script.Handlers.Low, TSLab.Script.Handlers, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null" />
+        </Block>
+        <Block Key="B2" Category="Formula" Location="476 304.72333333333336" TypeName="BoolCustomHandlerItem" Width="120" Height="60" OpenParams="false">
+          <EditItem CodeName="B2" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.ScriptEngine.Template.BoolCustomHandlerItem+Handler, TSLab.ScriptEngine, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null">
+            <Parameters>
+              <Parameter Name="Expression" TypeName="String" Value="C&lt;(O-y)" />
+              <Parameter Name="StartIndex" TypeName="Int32" Value="20" />
+            </Parameters>
+          </EditItem>
+        </Block>
+        <Block Key="B6" Category="Formula" Location="471 470.72333333333336" TypeName="BoolCustomHandlerItem" Width="160" Height="60" OpenParams="false">
+          <EditItem CodeName="B6" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.ScriptEngine.Template.BoolCustomHandlerItem+Handler, TSLab.ScriptEngine, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null">
+            <Parameters>
+              <Parameter Name="Expression" TypeName="String" Value="C&lt;МинЗа1[i-1]" />
+              <Parameter Name="StartIndex" TypeName="Int32" Value="20" />
+            </Parameters>
+          </EditItem>
+        </Block>
+        <Block Key="B7" Category="Formula" Location="479 382.72333333333336" TypeName="BoolCustomHandlerItem" Width="160" Height="60" OpenParams="false">
+          <EditItem CodeName="B7" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.ScriptEngine.Template.BoolCustomHandlerItem+Handler, TSLab.ScriptEngine, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null">
+            <Parameters>
+              <Parameter Name="Expression" TypeName="String" Value="C[i-1]&gt;C[i-2]" />
+              <Parameter Name="StartIndex" TypeName="Int32" Value="20" />
+            </Parameters>
+          </EditItem>
+        </Block>
+        <Block Key="И2" Category="Usual" Location="748 426.72333333333336" TypeName="TwoOrMoreInputsItem">
+          <EditItem CodeName="И2" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.Script.Handlers.And, TSLab.Script.Handlers, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null" />
+        </Block>
+        <Block Key="H" Category="Usual" Location="329 140.72333333333333" TypeName="ConverterItem">
+          <EditItem CodeName="H" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.Script.Handlers.High, TSLab.Script.Handlers, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null" />
+        </Block>
+        <Block Key="МинЗа1" Category="Usual" Location="480 548.72333333333336" TypeName="ConverterItem">
+          <EditItem CodeName="МинЗа1" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.Script.Handlers.Lowest, TSLab.Script.Handlers, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null">
+            <Parameters>
+              <Parameter Name="Period" TypeName="Int32" Value="3" />
+            </Parameters>
+          </EditItem>
+        </Block>
+        <Block Key="Объем1" Category="Usual" Location="321 212.44666666666672" TypeName="ConverterItem">
+          <EditItem CodeName="Объем1" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.Script.Handlers.Volume, TSLab.Script.Handlers, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null" />
+        </Block>
+        <Block Key="Константа1" Category="Usual" Location="297 292.44666666666672" TypeName="ConverterItem">
+          <EditItem CodeName="Константа1" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.Script.Handlers.ConstGen, TSLab.Script.Handlers, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null">
+            <Parameters>
+              <Parameter Name="Value" TypeName="Double" Value="15000" />
+            </Parameters>
+          </EditItem>
+        </Block>
+        <Block Key="V" Category="Formula" Location="646 217.44666666666672" TypeName="BoolCustomHandlerItem" Width="120" Height="60" OpenParams="false">
+          <EditItem CodeName="V" IsParametersVisible="false" OnlyValueHandlersCanUsed="false" HandlerTypeName="TSLab.ScriptEngine.Template.BoolCustomHandlerItem+Handler, TSLab.ScriptEngine, Version=1.2.24.0, Culture=neutral, PublicKeyToken=null">
+            <Parameters>
+              <Parameter Name="Expression" TypeName="String" Value="Объем1&gt;=Константа1" />
+              <Parameter Name="StartIndex" TypeName="Int32" Value="0" />
+            </Parameters>
+          </EditItem>
+        </Block>
+        <GraphLink From="Источник1" To="Главная" FromPort="Out" ToPort="RIGHT" Category="ChartCandleLink">
+          <Data>
+            <GraphData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ListStyle="LINE" CandleStyle="BAR_CANDLE" LineStyle="SOLID" Color="255" AltColor="255" Opacity="0" HideLastValue="false" Thickness="1" PaneSide="RIGHT" Visible="true" ShowTrades="true" ShowPositionStop="true" ShowPositionText="true" ShowPositionIcon="true" />
+          </Data>
+        </GraphLink>
+        <Link From="Источник1" To="Long" FromPort="Out" ToPort="Src" ToPortNum="0" />
+        <Link From="Long" To="LE" FromPort="Out" ToPort="Pos" ToPortNum="0" />
+        <Link From="Источник1" To="S" FromPort="Out" ToPort="Src" ToPortNum="0" />
+        <Link From="S" To="SE" FromPort="Out" ToPort="Pos" ToPortNum="0" />
+        <Link From="Источник1" To="C" FromPort="Out" ToPort="Src" ToPortNum="0" />
+        <Link From="Источник1" To="O" FromPort="Out" ToPort="Src" ToPortNum="0" />
+        <Link From="C" To="B1" FromPort="Out" ToPortNum="0" />
+        <Link From="y" To="B1" FromPort="Out" ToPortNum="1" />
+        <Link From="O" To="B1" FromPort="Out" ToPortNum="2" />
+        <Link From="C" To="B4" FromPort="Out" ToPortNum="0" />
+        <Link From="B4" To="И1" FromPort="Out" ToPort="1" ToPortNum="0" />
+        <Link From="B1" To="И1" FromPort="Out" ToPort="2" ToPortNum="1" />
+        <Link From="C" To="B5" FromPort="Out" ToPortNum="2" />
+        <Link From="B5" To="И1" FromPort="Out" ToPort="3" ToPortNum="2" />
+        <Link From="И1" To="Long" FromPort="Out" ToPort="Eq" ToPortNum="1" />
+        <Link From="C" To="B2" FromPort="Out" ToPortNum="1" />
+        <Link From="O" To="B2" FromPort="Out" ToPortNum="2" />
+        <Link From="y" To="B2" FromPort="Out" ToPortNum="3" />
+        <Link From="C" To="B7" FromPort="Out" ToPortNum="0" />
+        <Link From="C" To="B6" FromPort="Out" ToPortNum="1" />
+        <Link From="Источник1" To="L" FromPort="Out" ToPort="Src" ToPortNum="0" />
+        <Link From="B2" To="И2" FromPort="Out" ToPort="1" ToPortNum="0" />
+        <Link From="B7" To="И2" FromPort="Out" ToPort="2" ToPortNum="1" />
+        <Link From="B6" To="И2" FromPort="Out" ToPort="3" ToPortNum="2" />
+        <Link From="И2" To="S" FromPort="Out" ToPort="Eq" ToPortNum="1" />
+        <Link From="И2" To="LE" FromPort="Out" ToPort="Eq" ToPortNum="1" />
+        <Link From="И1" To="SE" FromPort="Out" ToPort="Eq" ToPortNum="1" />
+        <Link From="Источник1" To="H" FromPort="Out" ToPort="Src" ToPortNum="0" />
+        <Link From="МинЗа1" To="B6" FromPort="Out" ToPortNum="1" />
+        <Link From="L" To="МинЗа1" FromPort="Out" ToPort="Src" ToPortNum="0" />
+        <Link From="H" To="B5" FromPort="Out" ToPortNum="0" />
+        <Link From="Источник1" To="Объем1" FromPort="Out" ToPort="Src" ToPortNum="0" />
+        <Link From="Объем1" To="V" FromPort="Out" ToPortNum="0" />
+        <Link From="Константа1" To="V" FromPort="Out" ToPortNum="1" />
+        <Link From="V" To="И1" FromPort="Out" ToPort="4" ToPortNum="3" />
+        <Link From="V" To="И2" FromPort="Out" ToPort="4" ToPortNum="3" />
+      </Model>
+    </ViewModel>
+  </EditData>
+  <Options xsi:type="LabOptions">
+    <BarSize>0.56278140220937733</BarSize>
+    <Indent>50</Indent>
+    <HideValues>false</HideValues>
+    <IntervalBase>MINUTE</IntervalBase>
+    <Interval>5</Interval>
+    <RecalcInterval>TICK</RecalcInterval>
+    <DateFrom>2016-04-01T00:00:00</DateFrom>
+    <UseDateFrom>true</UseDateFrom>
+    <DateTo>2017-05-26T00:10:00</DateTo>
+    <UseDateTo>false</UseDateTo>
+    <MaxDays>0</MaxDays>
+    <SessionBegin>2000-01-01T00:00:00</SessionBegin>
+    <SessionEnd>2000-01-01T00:00:00</SessionEnd>
+    <DecompressMethod>Method1</DecompressMethod>
+    <TradeFromBar>0</TradeFromBar>
+    <MaxCandels>0</MaxCandels>
+    <RtUpdates>false</RtUpdates>
+    <CalcForEachSecurity>true</CalcForEachSecurity>
+    <NotUsePositions>false</NotUsePositions>
+    <InitDeposit>1000000</InitDeposit>
+    <LabCalcType>Default</LabCalcType>
+    <TradeMode>All</TradeMode>
+    <SaveLayout>false</SaveLayout>
+  </Options>
+  <Mappings>
+    <Sources>
+      <Source DataSourceName="Si" SecurityId="SPFB.RTS_160101_170323" Name="Источник1">
+        <Records />
+      </Source>
+    </Sources>
+    <Parameters />
+  </Mappings>
+  <Iterations>441</Iterations>
+  <OptParametersRecords />
+</GraphDataBase>]]></Code>
+  <Settings2><![CDATA[<?xml version="1.0" encoding="utf-16"?>
+<LabSettings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <RealtimeSettings>
+    <Options>
+      <DefEntryApprove>false</DefEntryApprove>
+      <DefExitApprove>false</DefExitApprove>
+      <AutoEntryBars>0</AutoEntryBars>
+      <AutoCloseBars>0</AutoCloseBars>
+      <Slippage>0</Slippage>
+      <SlippagePct>0</SlippagePct>
+      <TakeProfitNoSlippage>false</TakeProfitNoSlippage>
+      <OpenPositionNoSlippage>false</OpenPositionNoSlippage>
+      <ByMarketAsLimt>false</ByMarketAsLimt>
+      <InvalidStopsByMarket>false</InvalidStopsByMarket>
+      <RemoveInactivePositions>true</RemoveInactivePositions>
+      <WarnSkippedOpenPositions>true</WarnSkippedOpenPositions>
+      <NotOpenIfHasSkippedExit>false</NotOpenIfHasSkippedExit>
+      <NoCalcInfo>false</NoCalcInfo>
+      <MaxBarsForSignal>0</MaxBarsForSignal>
+      <WaitExecutionExitBars>0</WaitExecutionExitBars>
+      <WaitExecutionEntryBars>0</WaitExecutionEntryBars>
+      <SimulatePositionOrdering>true</SimulatePositionOrdering>
+    </Options>
+    <AppearanceOptions>
+      <Background>
+        <A>255</A>
+        <R>245</R>
+        <G>245</G>
+        <B>245</B>
+        <ScA>1</ScA>
+        <ScR>0.913098633</ScR>
+        <ScG>0.913098633</ScG>
+        <ScB>0.913098633</ScB>
+      </Background>
+      <Foreground>
+        <A>255</A>
+        <R>0</R>
+        <G>0</G>
+        <B>0</B>
+        <ScA>1</ScA>
+        <ScR>0</ScR>
+        <ScG>0</ScG>
+        <ScB>0</ScB>
+      </Foreground>
+      <ShowCaption>true</ShowCaption>
+      <FontSize>11</FontSize>
+    </AppearanceOptions>
+  </RealtimeSettings>
+</LabSettings>]]></Settings2>
+</ExportScriptData>

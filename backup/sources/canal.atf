@@ -1,0 +1,300 @@
+#samewindow
+//long max
+#line 0 solid #00ff00 
+//long min
+#line 1 solid #0000ff
+//short max
+#line 2 dashed #000000
+//short min
+#line 3 dashed #ff0000
+
+extern longPer = 50;
+extern shortPer = 22;
+//количество шагов цены на которое будет изменяться цена активации заявок на вход в позицию
+extern priceStepCount = 2;
+extern maxRisk = 0.5;
+extern avalibleMoney = 400000;
+
+var count = 0;
+
+//id текущего стопа
+static curStopOrder;
+//id позиции на шорт
+static curShortOrder;
+//id позиции на лонг
+static curLongOrder;
+// цена входа
+static enterPrice;
+// коэффициент выставления заявки
+static quantityRate;
+// 0 - не в позиции, 1 - лонг, -1 - шорт
+static position;
+
+function init()
+{
+	position = 0;
+	quantityRate = 1;
+    count = shortPer+1;
+	setInitCandles(shortPer);
+	setBounds(0, longPer, 0);
+	setBounds(1, longPer, 0);
+	setBounds(2, shortPer, 0);
+	setBounds(3, shortPer, 0);
+}
+
+function updateRate(var entPrice, var exitPrice, var posDirection)
+{
+	if (posDirection < 0)
+	{
+		if(entPrice > exitPrice)
+		{
+			quantityRate = quantityRate + 0.2;
+		}
+		else
+		{
+			quantityRate = 1;
+		}
+	}
+	if (posDirection > 0)
+	{
+		if(entPrice < exitPrice)
+		{
+			quantityRate = quantityRate + 0.2;
+		}
+		else
+		{
+			quantityRate = 1;
+		}
+	}
+	signal::output("Новый коэфф: " + quantityRate);
+}
+function getSecPriceStep()
+{
+	var secInfo = getSecInfo();
+	return as_number(secInfo["minstep"]);
+}
+
+function getSecLotSize()
+{
+	var secInfo = getSecInfo();
+	return as_number(secInfo["lotsize"]);
+}
+
+//рассчет размера входа. можно добавить плавающий коэффициент (при успешных сделаках он 1, при убыточных увеличивается)
+function calcQuantity(var price)
+{
+	return floor((avalibleMoney * quantityRate)/(getSecLotSize() * price));
+}
+
+//функция для установки ордера (кредит включен!)
+function setOrder(var orderType, var price, var quantity, var condition, var conditionPrice)
+{
+	// Создание хеша
+	var order = new_object("hash");
+
+	// Заполнение парамеров хеша
+	order["operation"] = orderType;
+	order["quantity"] = quantity;
+	order["usecredit"] = true;
+	order["price"] = price;
+	order["validbefore"] = TILL_CANCELED;
+	order["condition"] = condition;
+	order["condvalue"] = conditionPrice;
+
+	// Выставление заявку на биржу
+	return trade_action::transactMultiple(order);
+}
+
+//функция для установки стоп ордера
+function setStopOrder(var orderType, var price)
+{
+	var stop = new_object("hash");
+
+	// Заявка на продажу
+	stop["operation"] = orderType;
+
+	// Часть Stop Loss
+	stop["sl_activationprice"] = price;
+	stop["sl_quantity"] = "100%" ;
+	stop["validbefore"] = TILL_CANCELED;
+
+	// Выставление заявки на рынок
+	return trade_action::transactMultiple(stop);
+}
+
+function getMin(var period)
+{	
+	var i = period * -1;
+	var result = low[i];
+	while(i < 0)
+	{
+		if(result > low[i])
+		{
+			result = low[i];
+		}
+		i = i + 1;
+	}
+	return result;
+}
+
+function getMax(var period)
+{
+	var i = period * -1;
+	var result = high[i];
+	while(i < 0)
+	{
+		if(result < high[i])
+		{
+			result = high[i];
+		}
+		i= i + 1;
+	}
+	return result;
+}
+
+//обновляем ордера
+function updateOrders()
+{
+	//старые в утиль
+	trade_action::cancelAllOrders();
+
+	var activationPrice = line[1] + (getSecPriceStep()* priceStepCount) ;
+	curShortOrder = setOrder(OP_SELL, line[1], calcQuantity(line[1]), COND_ASK, activationPrice );
+	if (not curShortOrder) 
+	{
+		  signal::output(getLastErrorMessage());
+	}
+	else
+	{
+	   signal::output("Обновили шорт. Цена: " + line[1] + " Цена Активации: " + activationPrice);
+	}
+
+	activationPrice =  line[0] - (getSecPriceStep()* priceStepCount);
+	curLongOrder = setOrder(OP_BUY, line[0], calcQuantity(line[0]), COND_BID, activationPrice);
+	if (not curLongOrder) 
+	{
+		  signal::output(getLastErrorMessage());
+	}
+	else
+	{
+		signal::output("Обновили лонг. Цена: " + line[0] + " Цена Активации: " + activationPrice );
+	}
+}
+
+//обновляем стопы
+function updateStopOrder()
+{
+	trade_action::cancelAllOrders();
+	trade_action::cancelStopOrder(curStopOrder);
+	//бумаг > 0? стоим в лонге, значит стоп-заявка на шорт
+	if(getSecBalance()> 0)
+	{
+		curStopOrder = setStopOrder(OP_SELL, line[3]);
+	}
+	else
+	{
+		if (getSecBalance() < 0)
+		{
+			curStopOrder = setStopOrder(OP_BUY, line[2]);
+		}
+	}
+
+	if (not curStopOrder) 
+	{
+		  signal::output(getLastErrorMessage());
+	}
+	else
+	{
+		signal::output("Обновили стопы.");
+	}
+}
+
+
+//по ордеру мы должны смотреть закрылся ли ордер, если да, то делаем то что нужно после полного входа
+function onOrder(var id)
+{
+	var order = getOrder(id);
+	//если полностью вошли в позицию - закрываем все заявки (точнее одну на противоположенной границе)
+	if (order["status"] == OS_MATCHED)
+	{
+		var price =	order["price"];
+		//вошли в шорт
+		if (id == curShortOrder)
+		{
+			trade_action::cancelAllOrders();			
+			signal::output("Зашли полностью в шорт. Цена :" + price);
+			position = -1;
+			enterPrice = price;
+		}
+		else		
+			//зашли в лонг
+			if (id == curLongOrder )
+			{
+				trade_action::cancelAllOrders();
+				signal::output("Зашли полностью в лонг. Цена :" + price);
+				position = 1;
+				enterPrice = price;
+			}
+			else
+				{				
+					var stop = getStopOrder(curStopOrder);
+					//вышли из позиции
+					if (order["orderno"] == stop["orderno"] && getSecBalance() == 0)
+					{
+						price = stop["sl_activationprice"];
+						signal::output("Вышли из позиции. Цена активации :" + price);
+						updateOrders();
+						updateRate(enterPrice, price, position);
+						enterPrice = 0;
+						position = 0;
+					}
+				}
+	}
+}
+
+// по трейду изменяем кол-во бумаг, чтобы понимать в лонге мы или в шорте
+function onTrade(var id) 
+{
+	var trade = getTrade(id);
+	if (trade["operation"]  == OP_BUY)
+	{	
+		signal::output("Купили "+trade["quantity"]);
+	}
+	else
+	{	
+		signal::output("Продали "+trade["quantity"]);
+	}
+
+}
+
+function calc()
+{
+	if(count > longPer)
+	{
+		line[0] = getMax(longPer);
+		line[1] = getMin(longPer);	
+	}
+	line[2] = getMax(shortPer);
+	line[3] = getMin(shortPer);
+
+    count = count + 1;	
+}
+
+function onNewCandle() 
+{
+	//если нет позиции - обновляем заявки
+	if(getSecBalance() == 0)
+	{
+		updateOrders();
+	}
+	//если есть - обновляем стопы
+	else
+	{	  
+		updateStopOrder();
+	}
+	signal::output("***************** LOG*****************");
+	signal::output("curStopOrder :" + curStopOrder);
+	signal::output("curShortOrder :" + curShortOrder);
+	signal::output("curLongOrder :" + curLongOrder);	
+	signal::output("***************** END LOG*****************");
+}
