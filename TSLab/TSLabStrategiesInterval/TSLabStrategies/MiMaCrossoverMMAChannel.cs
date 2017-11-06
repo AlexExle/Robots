@@ -15,6 +15,9 @@ namespace TSLabStrategies
 {
     public class MiMaCrossoverMMAChannel : IExternalScript
     {
+
+        public IPosition LastActivePosition = null;
+
         const int C_BLACK = 0x000000;
         const int C_RED = 0xFF0000;
 
@@ -57,7 +60,34 @@ namespace TSLabStrategies
             // Отрисовка PC
             for (int bar = firstValidValue; bar < sec.Bars.Count; bar++)
             {
+                int shares = Math.Max(1, sec.PercentOfEquityShares(bar, sec.CurrentBalance(bar) * PercentOEquity.Value / 100));
 
+                var positions = sec.Positions.GetActiveForBar(bar);
+                foreach (var position in positions)
+                {
+                    if (position.IsLong)
+                    {
+
+                        position.CloseAtStop(bar + 1, lowChannel[bar], position.EntrySignalName + "stop_Long");
+                        if (positions.Count() < 2)
+                            sec.Positions.SellIfLess(bar + 1, shares, lowChannel[bar], "Sell");
+                    }
+                    else
+                    {
+                        position.CloseAtStop(bar + 1, upChannel[bar], position.EntrySignalName + "stop_Short");
+                        if (positions.Count() < 2)
+                            sec.Positions.BuyIfGreater(bar + 1, shares, upChannel[bar], "Buy");
+                    }
+                }
+
+                if (LastActivePosition == null)
+                {
+                    //if (signalBuy)
+                    sec.Positions.BuyIfGreater(bar + 1, shares, upChannel[bar], "Buy");
+
+                    // if(signalShort)
+                    sec.Positions.SellIfLess(bar + 1, shares, lowChannel[bar], "Sell");
+                }
             }
 
             pricePane.AddList("Fast EMA", fastEma, ListStyles.LINE, 0x0000a0, LineStyles.DOT, PaneSides.RIGHT);
