@@ -95,13 +95,14 @@ namespace TSLabStrategies
                     {
                         newVals[i] = prev;
                     }                    
-                    if (i > firstValidValue && wasOwerturn(true, gist, i))
+                    if (i > firstValidValue && (wasOwerturn(true, gist, i) || wasOwerturn(false, gist, i)))
                     {
                      
                         if (prevRevert != 0)
                         {
                             prev = localMin;
-                            localMin = sec.Bars[i].Low;
+                            if (wasOwerturn(false, gist, i))
+                                localMin = sec.Bars[i].Low;
                         }
                         prevRevert = i;                        
                     }
@@ -138,12 +139,13 @@ namespace TSLabStrategies
                     {
                         newVals[i] = prev;
                     }                  
-                    if (i > firstValidValue && i > 0 && wasOwerturn(false, gist, i))
+                    if (i > firstValidValue && i > 0 && (wasOwerturn(true, gist, i) || wasOwerturn(false, gist, i)))
                     {
                         if (prevRevert != 0)
                         {
                             prev = localHigh;
-                            localHigh = sec.Bars[i].High;
+                            if (wasOwerturn(true, gist, i))
+                              localHigh = sec.Bars[i].High;
                         }
                         prevRevert = i;                        
                     }
