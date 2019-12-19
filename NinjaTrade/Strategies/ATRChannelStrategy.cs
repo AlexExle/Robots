@@ -39,12 +39,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             if (State == State.SetDefaults)
             {
-           
+
                 Period = 400;
-                Multiplier = 2;
-                SlowMA = 23;
-                FastMA = 45;
-                MinimumPeriod = 3;
+                Multiplier = 1.6;
+                SlowMA = 20;
+                FastMA = 5;
                 EquityPercent = 5;
                 // This strategy has been designed to take advantage of performance gains in Strategy Analyzer optimizations
                 // See the Help Guide for additional information
@@ -52,7 +51,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             else if (State == State.DataLoaded)
             {
-                ChannelIndicator = AtrChannel(Period, Multiplier, SlowMA, FastMA, MinimumPeriod);
+                ChannelIndicator = AtrChannel(Period, Multiplier, SlowMA, FastMA);
                 
                 ChannelIndicator.Plots[0].Brush = Brushes.Goldenrod;
                 ChannelIndicator.Plots[1].Brush = Brushes.Red;
@@ -66,12 +65,12 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (CurrentBar < BarsRequiredToTrade)
                 return;
 
-            if (CrossAbove(Bars, ChannelIndicator.HighBorder, 1))
+            if (CrossAbove(High, ChannelIndicator.HighBorder, 1))
             {
                 ExitShort();
-                EnterLong(quantity: CalcPosition(EquityPercent / 100));
+                EnterLong(quantity: CalcPosition(EquityPercent/100));
             }
-            else if (CrossBelow(Bars, ChannelIndicator.LowBorder, 1))
+            else if (CrossBelow(Low, ChannelIndicator.LowBorder, 1))
             {
                 ExitLong();
                 EnterShort(quantity: CalcPosition(EquityPercent/100));
