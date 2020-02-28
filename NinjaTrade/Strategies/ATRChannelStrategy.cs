@@ -1,6 +1,7 @@
 ﻿using NinjaTrader.NinjaScript.Indicators;
 using System.ComponentModel.DataAnnotations;
 using System.Windows.Media;
+using NinjaTrader.Cbi;
 
 
 //This namespace holds strategies in this folder and is required. Do not change it.
