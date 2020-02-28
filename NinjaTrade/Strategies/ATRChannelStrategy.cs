@@ -16,6 +16,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             switch (State)
             {
                 case State.SetDefaults:
+                    EntriesPerDirection = 1;
+                    EntryHandling = EntryHandling.AllEntries;
                     break;
                 case State.Configure:
                     break;
@@ -64,22 +66,40 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (CurrentBar < BarsRequiredToTrade)
                 return;
+            ManagePositionByLimits(); //Если нужно переключить на вход по рынку то заменить на ManagePositionByMarket();
+        }
 
-            if (CrossAbove(High, ChannelIndicator.HighBorder, 1))
+        protected void ManagePositionByMarket()
+        {
+            if (Position.MarketPosition != MarketPosition.Long && CrossAbove(High, ChannelIndicator.HighBorder, 1))
             {
-                ExitShort();
-                EnterLong(quantity: CalcPosition(EquityPercent/100));
+                //ExitShort(); противоположенный вход закрывает позицию автоматически
+                EnterLong(quantity: CalcPosition(EquityPercent / 100));
             }
-            else if (CrossBelow(Low, ChannelIndicator.LowBorder, 1))
+
+            if (Position.MarketPosition != MarketPosition.Short && CrossBelow(Low, ChannelIndicator.LowBorder, 1))
             {
-                ExitLong();
-                EnterShort(quantity: CalcPosition(EquityPercent/100));
+                //ExitLong(); противоположенный вход закрывает позицию автоматически
+                EnterShort(quantity: CalcPosition(EquityPercent / 100));
             }
         }
+
+        protected void ManagePositionByLimits()
+        {
+            if (Position.MarketPosition != MarketPosition.Long)
+            {
+                EnterLongLimit(limitPrice: ChannelIndicator.HighBorder[0], quantity: CalcPosition(EquityPercent / 100));
+            }
+
+            if (Position.MarketPosition != MarketPosition.Short)
+            {
+                EnterShortLimit(limitPrice: ChannelIndicator.LowBorder[0], quantity: CalcPosition(EquityPercent / 100));
+            }
+        }        
         
         protected int CalcPosition(double percent)
         {
-            double instrumentPrice = Open[0];
+            double instrumentPrice = Close[0];
             var cash = Account.Get(Cbi.AccountItem.CashValue, Cbi.Currency.UsDollar);
             var position = (cash * percent) / instrumentPrice;
             return (int)System.Math.Floor(position);
